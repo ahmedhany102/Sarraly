@@ -80,12 +80,15 @@ function App() {
               {/* Protected routes */}
               <Route element={<RequireAuth adminOnly={false} />}>
                 <Route path="/profile" element={<Profile />} />
-                <Route path="/cart" element={<Cart />} />
                 <Route path="/order-tracking" element={<OrderTracking />} />
                 <Route path="/orders" element={<OrderTracking />} />
                 <Route path="/favorites" element={<Favorites />} />
                 <Route path="/become-vendor" element={<BecomeVendor />} />
+                <Route path="/checkout" element={<Cart />} />
               </Route>
+
+              {/* Cart is PUBLIC - checkout auth is handled inside Cart.tsx */}
+              <Route path="/cart" element={<Cart />} />
 
               {/* Vendor routes */}
               <Route element={<RequireVendorAuth />}>

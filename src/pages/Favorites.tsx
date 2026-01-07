@@ -42,8 +42,13 @@ const Favorites = () => {
   useEffect(() => {
     if (!user) {
       // Save current URL for redirect after login
-      sessionStorage.setItem('redirectAfterLogin', location.pathname);
-      navigate('/login');
+      sessionStorage.setItem('redirectAfterLogin', location.pathname + location.search);
+      // Redirect to vendor login when in vendor context
+      if (isVendorContext && vendorSlug) {
+        navigate(`/store/${vendorSlug}/login`);
+      } else {
+        navigate('/login');
+      }
       return;
     }
     fetchFavoriteProducts();

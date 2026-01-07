@@ -160,10 +160,15 @@ const Profile = () => {
   // Redirect to login if not authenticated, saving current URL
   React.useEffect(() => {
     if (!loading && !user) {
-      sessionStorage.setItem('redirectAfterLogin', location.pathname);
-      navigate('/login');
+      sessionStorage.setItem('redirectAfterLogin', location.pathname + location.search);
+      // Redirect to vendor login when in vendor context
+      if (isVendorContext && vendorSlug) {
+        navigate(`/store/${vendorSlug}/login`);
+      } else {
+        navigate('/login');
+      }
     }
-  }, [user, loading, location.pathname, navigate]);
+  }, [user, loading, location.pathname, location.search, navigate, isVendorContext, vendorSlug]);
 
   if (!user) {
     return null; // Wait for redirect

@@ -34,32 +34,32 @@ export const useSupabaseProducts = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      
+
       LoadingFallback.startTimeout('product-fetch', 5000, () => {
         setLoading(false);
         setProducts([]);
       });
-      
+
       console.log('🔄 Fetching products with vendor info...');
-      
+
       // Use RPC to get products with vendor info, filtering to only approved products
       const { data, error } = await supabase.rpc('get_products_with_vendor', {
         _category_id: null,
         _search_query: null,
-        _limit: 1000
+        _limit: 20 // 🔴 CRITICAL FIX: was 1000, reduced to prevent egress overuse
       });
-      
+
       LoadingFallback.clearTimeout('product-fetch');
-      
+
       if (error) {
         console.error('❌ Error fetching products:', error);
         toast.error('Failed to load products: ' + error.message);
         setProducts([]);
         return;
       }
-      
+
       console.log('✅ Raw products fetched:', data?.length || 0);
-      
+
       const cleanedProducts = (data || []).map(product => {
         let cleanImages: string[] = [];
         if (product.images) {
@@ -75,7 +75,7 @@ export const useSupabaseProducts = () => {
             }
           }
         }
-        
+
         let cleanColors: string[] = [];
         if (product.colors) {
           if (Array.isArray(product.colors)) {
@@ -90,7 +90,7 @@ export const useSupabaseProducts = () => {
             }
           }
         }
-        
+
         let cleanSizes: Array<{ size: string; stock: number; price?: number }> = [];
         if (product.sizes) {
           if (Array.isArray(product.sizes)) {
@@ -138,7 +138,7 @@ export const useSupabaseProducts = () => {
           vendor_logo_url: product.vendor_logo_url || null
         };
       });
-      
+
       console.log('✅ Cleaned products:', cleanedProducts.length);
       console.log('📊 Sample product structure:', cleanedProducts[0]);
 
@@ -159,14 +159,14 @@ export const useSupabaseProducts = () => {
     try {
       console.log('🆕 Adding product with data:', productData);
       console.log('🎯 CRITICAL - Category ID being saved:', productData.category_id);
-      
+
       // CRITICAL: Validate category_id before saving
       if (!productData.category_id || productData.category_id === "" || productData.category_id === "placeholder") {
         console.error('❌ Invalid category_id provided:', productData.category_id);
         toast.error('Please select a valid category');
         return false;
       }
-      
+
       // FIXED: Ensure category_id is properly set and all required fields are included
       const cleanProductData = {
         name: productData.name?.trim() || '',
@@ -184,38 +184,38 @@ export const useSupabaseProducts = () => {
         inventory: Number(productData.inventory) || Number(productData.stock) || 0,
         featured: Boolean(productData.featured) || false
       };
-      
+
       // CRITICAL: Remove any undefined values to prevent DB errors
       Object.keys(cleanProductData).forEach(key => {
         if (cleanProductData[key] === undefined) {
           delete cleanProductData[key];
         }
       });
-      
+
       console.log('📤 Final data being sent to DB (fixed category_id):', cleanProductData);
-      
+
       const { data, error } = await supabase
         .from('products')
         .insert([cleanProductData])
         .select('*')
         .single();
-      
+
       if (error) {
         console.error('❌ Error adding product:', error);
         toast.error('Failed to add product: ' + error.message);
         return { success: false, error };
       }
-      
+
       console.log('✅ Product added successfully with category_id:', data.category_id);
       console.log('🆔 New product ID:', data.id);
-      
+
       // Store the product ID for variant saving
       const productId = data.id;
-      
+
       toast.success('Product added successfully!');
-      
+
       await fetchProducts();
-      
+
       // Return the product data including the ID for variant saving
       return { success: true, id: productId, data };
     } catch (error: any) {
@@ -228,7 +228,7 @@ export const useSupabaseProducts = () => {
   const updateProduct = async (id: string, updates: any) => {
     try {
       console.log('✏️ Updating product:', id, updates);
-      
+
       // FIXED: Clean update data and ensure category_id is preserved
       const cleanUpdates = {
         name: updates.name?.trim(),
@@ -246,32 +246,32 @@ export const useSupabaseProducts = () => {
         stock: updates.stock !== undefined ? Number(updates.stock) : undefined,
         inventory: updates.inventory !== undefined ? Number(updates.inventory) : Number(updates.stock) || undefined
       };
-      
+
       // Remove undefined values
       Object.keys(cleanUpdates).forEach(key => {
         if (cleanUpdates[key] === undefined) {
           delete cleanUpdates[key];
         }
       });
-      
+
       console.log('📤 Clean update data (preserving category_id):', cleanUpdates);
-      
+
       const { data, error } = await supabase
         .from('products')
         .update(cleanUpdates)
         .eq('id', id)
         .select('*')
         .single();
-      
+
       if (error) {
         console.error('❌ Error updating product:', error);
         toast.error('Failed to update product: ' + error.message);
         return false;
       }
-      
+
       console.log('✅ Product updated successfully with category_id:', data.category_id);
       toast.success('Product updated successfully!');
-      
+
       await fetchProducts();
       return true;
     } catch (error: any) {
@@ -284,21 +284,21 @@ export const useSupabaseProducts = () => {
   const deleteProduct = async (id: string) => {
     try {
       console.log('🗑️ Deleting product:', id);
-      
+
       const { error } = await supabase
         .from('products')
         .delete()
         .eq('id', id);
-      
+
       if (error) {
         console.error('❌ Error deleting product:', error);
         toast.error('Failed to delete product: ' + error.message);
         return false;
       }
-      
+
       console.log('✅ Product deleted successfully');
       toast.success('Product deleted successfully!');
-      
+
       await fetchProducts();
       return true;
     } catch (error: any) {
@@ -308,12 +308,12 @@ export const useSupabaseProducts = () => {
     }
   };
 
-  return { 
-    products, 
-    loading, 
-    addProduct, 
-    updateProduct, 
-    deleteProduct, 
-    refetch: fetchProducts 
+  return {
+    products,
+    loading,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    refetch: fetchProducts
   };
 };

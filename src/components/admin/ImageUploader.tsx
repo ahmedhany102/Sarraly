@@ -1,4 +1,7 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Loader2, X, Upload, Image as ImageIcon } from "lucide-react";
+import { toast } from "sonner";
 
 interface ImageUploaderProps {
   value?: string[];
@@ -8,61 +11,137 @@ interface ImageUploaderProps {
 
 const ImageUploader: React.FC<ImageUploaderProps> = ({ value = [], onChange, label }) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [uploading, setUploading] = useState(false);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
-    let loaded = 0;
-    const newImages: string[] = [];
-    files.forEach((file, idx) => {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        newImages[idx] = ev.target?.result as string;
-        loaded++;
-        if (loaded === files.length) {
-          onChange([...(value || []), ...newImages.filter(Boolean)]);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
+
+    // تحديد الحد الأقصى 5 صور
+    if (value.length + files.length > 5) {
+      toast.error('الحد الأقصى 5 صور فقط');
+      return;
+    }
+
+    setUploading(true);
+    const uploadedUrls: string[] = [];
+    const currentImages = Array.isArray(value) ? value : [];
+
+    try {
+      for (const file of files) {
+        // 1. إنشاء اسم فريد للملف
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        // 2. الرفع المباشر لـ Supabase Storage
+        const { error: uploadError } = await supabase.storage
+          .from('products') // تأكد إنك عملت bucket اسمه products
+          .upload(filePath, file, {
+            upsert: false,
+            contentType: file.type // مهم عشان المتصفح يعرف نوع الملف
+          });
+
+        if (uploadError) throw uploadError;
+
+        // 3. الحصول على الرابط العلني (Public URL)
+        const { data } = supabase.storage
+          .from('products')
+          .getPublicUrl(filePath);
+
+        uploadedUrls.push(data.publicUrl);
+      }
+
+      // 4. حفظ الروابط فقط في الداتابيز
+      onChange([...currentImages, ...uploadedUrls]);
+      toast.success("تم رفع الصور للمخزن بنجاح");
+
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast.error('فشل رفع الصور: ' + error.message);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
-  const handleRemove = (idx: number) => {
+  const handleRemove = async (idx: number) => {
+    // ملحوظة: مسح الصورة من الواجهة بس، مش بنمسحها من المخزن عشان منعقدش الأمور دلوقتي
     const updated = value.filter((_, i) => i !== idx);
     onChange(updated);
-    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   return (
-    <div className="space-y-2">
-      {label && <label className="block font-bold mb-1">{label}</label>}
-      <input
-        type="file"
-        accept="image/*"
-        ref={fileInputRef}
-        onChange={handleFileChange}
-        className="block"
-        multiple
-      />
-      {value.length > 0 && (
-        <div className="flex flex-wrap gap-2 mt-2">
-          {value.map((img, idx) => (
-            <div key={idx} className="relative w-fit">
-              <img src={img} alt={`preview-${idx}`} className="h-24 w-24 object-cover rounded shadow" />
-              <button
-                type="button"
-                onClick={() => handleRemove(idx)}
-                className="absolute top-0 right-0 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
-                title="حذف الصورة"
-              >
-                ×
-              </button>
-            </div>
-          ))}
+    <div className="space-y-3">
+      {label && <label className="block text-sm font-medium text-gray-700">{label}</label>}
+
+      <div className="flex flex-col gap-4">
+        {/* منطقة رفع الصور */}
+        <div
+          onClick={() => !uploading && fileInputRef.current?.click()}
+          className={`
+            border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors
+            ${uploading ? 'bg-gray-50 border-gray-300 cursor-not-allowed' : 'border-gray-300 hover:border-primary hover:bg-primary/5'}
+          `}
+        >
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            className="hidden"
+            multiple
+            disabled={uploading}
+          />
+
+          {uploading ? (
+            <>
+              <Loader2 className="h-8 w-8 text-primary animate-spin" />
+              <p className="text-sm text-muted-foreground">جاري رفع الصور للسيرفر...</p>
+            </>
+          ) : (
+            <>
+              <div className="p-3 bg-primary/10 rounded-full">
+                <Upload className="h-6 w-6 text-primary" />
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-medium text-gray-700">اضغط لرفع الصور</p>
+                <p className="text-xs text-muted-foreground mt-1">الحد الأقصى 5 صور</p>
+              </div>
+            </>
+          )}
         </div>
-      )}
+
+        {/* عرض الصور المرفوعة */}
+        {value.length > 0 && (
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+            {value.map((img, idx) => (
+              <div key={idx} className="relative group aspect-square rounded-lg overflow-hidden border bg-gray-100">
+                <img
+                  src={img}
+                  alt={`Product ${idx + 1}`}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemove(idx);
+                    }}
+                    className="bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors transform hover:scale-110"
+                    title="حذف الصورة"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
-export default ImageUploader; 
+export default ImageUploader;

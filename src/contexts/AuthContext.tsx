@@ -23,6 +23,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isInitialized = useRef(false);
   const lastFocusCheck = useRef<number>(0);
 
+  // هنا بنستخدم setLoading من الـ hook عشان نتحكم في حالة التحميل المركزية
   const { validateSessionAndUser, loading, setLoading } = useAuthValidation();
   const { login, adminLogin, signup, logout } = useAuthOperations();
 
@@ -30,34 +31,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await validateSessionAndUser(setSession, setUser);
   }, [validateSessionAndUser]);
 
-  // Handle tab focus/visibility changes - refresh session when returning to app
+  // Handle tab focus/visibility changes
   useEffect(() => {
     const handleVisibilityChange = async () => {
       if (document.visibilityState === 'visible') {
         const now = Date.now();
-        // Throttle focus checks to once per 5 seconds
-        if (now - lastFocusCheck.current < 5000) {
-          return;
-        }
+        if (now - lastFocusCheck.current < 5000) return;
         lastFocusCheck.current = now;
-        
+
         console.log('👁️ Tab became visible, checking session...');
-        
         try {
           const { data: { session: currentSession }, error } = await supabase.auth.getSession();
-          
-          if (error) {
-            console.error('❌ Error checking session on focus:', error);
-            return;
-          }
-          
+          if (error) return;
+
           if (currentSession && currentSession.user) {
-            // Session is valid, update state if needed
             if (!session || session.access_token !== currentSession.access_token) {
               console.log('🔄 Refreshing session state after tab focus');
               setSession(currentSession);
-              
-              // Refresh user profile in background
+              // Background refresh is fine here because the user is ALREADY logged in/viewing the page
               try {
                 const userData = await fetchUserProfile(currentSession.user.id, currentSession.user.email!);
                 setUser(userData);
@@ -66,7 +57,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               }
             }
           } else if (session) {
-            // Had a session but it's now gone - user was logged out
             console.log('🚪 Session expired while tab was hidden');
             setSession(null);
             setUser(null);
@@ -78,91 +68,75 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [session]);
 
   useEffect(() => {
-    // Prevent double initialization in React Strict Mode
-    if (isInitialized.current) {
-      return;
-    }
+    if (isInitialized.current) return;
     isInitialized.current = true;
-    
+
     console.log('🚀 Initializing auth system...');
 
-    // Set up auth state change listener FIRST
+    // 1. Setup Listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
-        console.log('🔔 Auth state changed:', event, newSession?.user?.email || 'No user');
+        console.log('🔔 Auth state changed:', event);
 
-        // Handle SIGNED_OUT
+        // --- حالة الخروج ---
         if (event === 'SIGNED_OUT') {
-          console.log('👋 User signed out');
           setUser(null);
           setSession(null);
           setLoading(false);
           return;
         }
 
-        // Handle SIGNED_IN or TOKEN_REFRESHED
+        // --- حالة الدخول (الحل هنا) ---
         if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && newSession?.user) {
-          console.log('🔐 User signed in or token refreshed');
+          console.log('🔐 User signed in, fetching FULL profile...');
 
-          // Check ban status (use setTimeout to avoid Supabase deadlock)
-          setTimeout(async () => {
-            try {
-              const { data: canAuth } = await supabase.rpc('can_user_authenticate', {
-                _user_id: newSession.user.id
-              });
-
-              if (canAuth === false) {
-                console.warn('🚫 Banned user detected, signing out');
-                await supabase.auth.signOut();
-                setUser(null);
-                setSession(null);
-                setLoading(false);
-                toast.error('تم حظر حسابك. تم تسجيل الخروج تلقائياً');
-                return;
-              }
-
-              setSession(newSession);
-
-              try {
-                const userData = await fetchUserProfile(newSession.user.id, newSession.user.email!);
-                setUser(userData);
-                console.log('✅ Profile loaded:', userData.email, userData.role);
-              } catch (err) {
-                console.error('❌ Failed to load profile:', err);
-                // Use fallback
-                setUser({
-                  id: newSession.user.id,
-                  email: newSession.user.email!,
-                  name: newSession.user.email?.split('@')[0] || 'User',
-                  role: 'USER'
-                });
-              }
-              setLoading(false);
-            } catch (err) {
-              console.error('❌ Error in auth state handler:', err);
-              setLoading(false);
-            }
-          }, 0);
-          return;
-        }
-
-        // Handle USER_UPDATED
-        if (event === 'USER_UPDATED' && newSession?.user) {
-          console.log('👤 User updated');
+          // 1. نحدث السيشن فوراً
           setSession(newSession);
-          setLoading(false);
+
+          // 2. نخلي اللودينج شغال عشان الراوتر يستنى
+          setLoading(true);
+
+          try {
+            // 3. نتأكد إن الحساب مش محظور الأول
+            const { data: canAuth } = await supabase.rpc('can_user_authenticate', {
+              _user_id: newSession.user.id
+            });
+
+            if (canAuth === false) {
+              console.warn('🚫 Banned user detected');
+              await supabase.auth.signOut();
+              setUser(null);
+              setSession(null);
+              toast.error('تم حظر حسابك. تم تسجيل الخروج تلقائياً');
+              return; // setLoading(false) will happen in finally block if we wanted, but here we redirect out
+            }
+
+            // 4. نجيب البيانات الحقيقية من الداتابيز (بما فيها الـ Role الصح)
+            const userData = await fetchUserProfile(newSession.user.id, newSession.user.email!);
+
+            // 5. نحدث اليوزر بالبيانات السليمة
+            setUser(userData);
+            console.log('✅ Profile loaded successfully:', userData.role);
+
+          } catch (err) {
+            console.error('❌ Error fetching profile on login:', err);
+            // Fallback safety
+            setUser(null);
+          } finally {
+            // 6. دلوقتي بس نقول للتطبيق "خلاص حملنا"
+            setLoading(false);
+          }
+        } else if (event === 'USER_UPDATED') {
+          setSession(newSession);
         }
       }
     );
 
-    // THEN check for existing session
+    // 2. Initial Load
     const initializeAuth = async () => {
       try {
         await validateSessionAndUser(setSession, setUser);
@@ -177,7 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, []); // Remove dependencies to run once
 
   const contextValue: AuthContextType = {
     user,

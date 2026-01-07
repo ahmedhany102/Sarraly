@@ -12,6 +12,18 @@ import { ProductVariant } from '@/hooks/useProductVariants';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useVendorContext } from '@/hooks/useVendorContext';
 
+// 🔴 Image optimization helper to reduce Supabase egress
+const getOptimizedUrl = (
+  url: string | null | undefined,
+  width: number = 400
+): string => {
+  if (!url) return "/placeholder.svg";
+  // External images remain untouched
+  if (!url.includes('supabase.co')) return url;
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}width=${width}&quality=80&resize=cover`;
+};
+
 interface ProductCardProps {
   product: Product & {
     vendor_name?: string;
@@ -157,12 +169,12 @@ const ProductCard = ({ product, className = '', variants = [] }: ProductCardProp
       <CardHeader className="p-0 pb-2 relative">
         <AspectRatio ratio={1} className="bg-gray-100 rounded-t-lg overflow-hidden">
           <img
-            src={mainImage}
+            src={getOptimizedUrl(mainImage, 300)}
             alt={product.name}
             width="300"
             height="300"
-            className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
             loading="lazy"
+            className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
             onError={(e) => {
               (e.target as HTMLImageElement).src = "/placeholder.svg";
             }}
@@ -238,8 +250,8 @@ const ProductCard = ({ product, className = '', variants = [] }: ProductCardProp
                     setSelectedVariant(variant);
                   }}
                   className={`w-4 h-4 rounded-full border-2 ${selectedVariant?.id === variant.id
-                      ? 'border-primary shadow-md'
-                      : 'border-gray-300'
+                    ? 'border-primary shadow-md'
+                    : 'border-gray-300'
                     }`}
                   style={{
                     backgroundImage: `url(${variant.image_url})`,
@@ -285,8 +297,8 @@ const ProductCard = ({ product, className = '', variants = [] }: ProductCardProp
                 <span
                   key={index}
                   className={`text-xs px-1 py-0.5 rounded border ${sizeInfo.stock > 0
-                      ? 'bg-primary/10 border-primary/20 text-primary'
-                      : 'bg-muted border-border text-muted-foreground'
+                    ? 'bg-primary/10 border-primary/20 text-primary'
+                    : 'bg-muted border-border text-muted-foreground'
                     }`}
                 >
                   {sizeInfo.size}
@@ -305,8 +317,8 @@ const ProductCard = ({ product, className = '', variants = [] }: ProductCardProp
           onClick={handleQuickAddToCart}
           disabled={isOutOfStock}
           className={`w-full text-sm ${isOutOfStock
-              ? 'bg-muted text-muted-foreground cursor-not-allowed'
-              : 'bg-primary hover:bg-primary/90 text-primary-foreground'
+            ? 'bg-muted text-muted-foreground cursor-not-allowed'
+            : 'bg-primary hover:bg-primary/90 text-primary-foreground'
             }`}
         >
           <ShoppingCart className="w-4 h-4 mr-2" />

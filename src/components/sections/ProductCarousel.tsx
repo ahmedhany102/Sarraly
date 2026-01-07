@@ -10,6 +10,18 @@ import { toast } from 'sonner';
 import CartDatabase from '@/models/CartDatabase';
 import { useVendorContext } from '@/hooks/useVendorContext';
 
+// 🔴 Image optimization helper to reduce Supabase egress
+const getOptimizedUrl = (
+  url: string | null | undefined,
+  width: number = 200
+): string => {
+  if (!url) return "/placeholder.svg";
+  // External images remain untouched
+  if (!url.includes('supabase.co')) return url;
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}width=${width}&quality=80&resize=cover`;
+};
+
 interface ProductCarouselProps {
   title: string;
   products: SectionProduct[];
@@ -213,10 +225,10 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({
               <div className="relative aspect-square bg-muted overflow-hidden rounded-t-lg">
                 {product.image_url ? (
                   <img
-                    src={product.image_url}
+                    src={getOptimizedUrl(product.image_url, 200)}
                     alt={product.name || 'Product'}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                     loading="lazy"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-muted-foreground">

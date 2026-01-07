@@ -61,6 +61,8 @@ export const RequireAuth = ({ adminOnly = false, children }: RequireAuthProps) =
   // Check if user is authenticated
   if (!user || !session) {
     console.log('❌ User not authenticated, redirecting to login');
+    // Save current path for redirect after login
+    sessionStorage.setItem('redirectAfterLogin', location.pathname + location.search);
     toast.error("يرجى تسجيل الدخول للوصول إلى هذه الصفحة");
     return <Navigate to="/login" state={{ from: location }} replace />;
   }

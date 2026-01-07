@@ -9,6 +9,8 @@ import Cart from '@/pages/Cart';
 import Profile from '@/pages/Profile';
 import OrderTracking from '@/pages/OrderTracking';
 import Favorites from '@/pages/Favorites';
+import VendorLogin from '@/pages/vendor/VendorLogin';
+import VendorSignup from '@/pages/vendor/VendorSignup';
 
 /**
  * VendorLayout - Container for all vendor-scoped routes
@@ -34,6 +36,10 @@ const VendorLayout: React.FC = () => {
             {/* Cart & Checkout */}
             <Route path="cart" element={<Cart />} />
             <Route path="checkout" element={<Cart />} />
+
+            {/* Auth pages (vendor-scoped with vendor branding) */}
+            <Route path="login" element={<VendorLogin />} />
+            <Route path="signup" element={<VendorSignup />} />
 
             {/* Account pages (vendor-scoped to maintain layout) */}
             <Route path="profile" element={<Profile />} />
