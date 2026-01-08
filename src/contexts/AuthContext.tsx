@@ -182,9 +182,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Wrapper login function that waits for auth state to be fully updated
   const login = useCallback(async (email: string, password: string): Promise<boolean> => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    
     // Create a promise that will be resolved when onAuthStateChange completes
     const authStatePromise = new Promise<AuthUser | null>((resolve, reject) => {
       authStateResolvers.current = { resolve, reject };
+    });
+
+    // Create timeout promise with cleanup
+    const timeoutPromise = new Promise<null>((_, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(new Error('Auth state update timeout'));
+      }, 15000);
     });
 
     try {
@@ -192,31 +201,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!success) {
         // Clear the resolver if login failed at Supabase level
         authStateResolvers.current = null;
+        if (timeoutId) clearTimeout(timeoutId);
         return false;
       }
 
       // Wait for the auth state change to complete (profile fetch, etc.)
-      const userData = await Promise.race([
-        authStatePromise,
-        // Timeout after 15 seconds
-        new Promise<null>((_, reject) => 
-          setTimeout(() => reject(new Error('Auth state update timeout')), 15000)
-        )
-      ]);
+      const userData = await Promise.race([authStatePromise, timeoutPromise]);
+
+      // Clean up timeout
+      if (timeoutId) clearTimeout(timeoutId);
 
       return userData !== null;
     } catch (error) {
       console.error('❌ Login error:', error);
       authStateResolvers.current = null;
+      if (timeoutId) clearTimeout(timeoutId);
       return false;
     }
   }, [baseLogin]);
 
   // Wrapper adminLogin function that waits for auth state to be fully updated
   const adminLogin = useCallback(async (email: string, password: string): Promise<boolean> => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    
     // Create a promise that will be resolved when onAuthStateChange completes
     const authStatePromise = new Promise<AuthUser | null>((resolve, reject) => {
       authStateResolvers.current = { resolve, reject };
+    });
+
+    // Create timeout promise with cleanup
+    const timeoutPromise = new Promise<null>((_, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(new Error('Auth state update timeout'));
+      }, 15000);
     });
 
     try {
@@ -224,45 +241,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!success) {
         // Clear the resolver if login failed at Supabase level
         authStateResolvers.current = null;
+        if (timeoutId) clearTimeout(timeoutId);
         return false;
       }
 
       // Wait for the auth state change to complete (profile fetch, etc.)
-      const userData = await Promise.race([
-        authStatePromise,
-        // Timeout after 15 seconds
-        new Promise<null>((_, reject) => 
-          setTimeout(() => reject(new Error('Auth state update timeout')), 15000)
-        )
-      ]);
+      const userData = await Promise.race([authStatePromise, timeoutPromise]);
+
+      // Clean up timeout
+      if (timeoutId) clearTimeout(timeoutId);
 
       return userData !== null;
     } catch (error) {
       console.error('❌ Admin login error:', error);
       authStateResolvers.current = null;
+      if (timeoutId) clearTimeout(timeoutId);
       return false;
     }
   }, [baseAdminLogin]);
 
   // Wrapper logout function that waits for auth state to be fully updated
   const logout = useCallback(async (): Promise<void> => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    
     // Create a promise that will be resolved when onAuthStateChange completes
+    // For logout, we treat timeout as success since the user should be logged out anyway
     const authStatePromise = new Promise<AuthUser | null>((resolve) => {
-      authStateResolvers.current = { resolve, reject: () => resolve(null) };
+      authStateResolvers.current = { 
+        resolve, 
+        reject: (error) => {
+          console.warn('Logout rejection (treating as success):', error);
+          resolve(null);
+        }
+      };
+    });
+
+    // Create timeout promise that resolves (not rejects) for logout
+    const timeoutPromise = new Promise<null>((resolve) => {
+      timeoutId = setTimeout(() => {
+        console.log('Logout timeout reached, proceeding...');
+        resolve(null);
+      }, 5000);
     });
 
     try {
       await baseLogout();
 
       // Wait for the auth state change to complete
-      await Promise.race([
-        authStatePromise,
-        // Timeout after 5 seconds for logout
-        new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000))
-      ]);
+      await Promise.race([authStatePromise, timeoutPromise]);
+      
+      // Clean up timeout
+      if (timeoutId) clearTimeout(timeoutId);
     } catch (error) {
       console.error('❌ Logout error:', error);
       authStateResolvers.current = null;
+      if (timeoutId) clearTimeout(timeoutId);
       // Force clear state on error
       setUser(null);
       setSession(null);
