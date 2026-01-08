@@ -22,10 +22,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const isInitialized = useRef(false);
   const lastFocusCheck = useRef<number>(0);
+  
+  // Ref to store pending auth state change resolvers
+  const authStateResolvers = useRef<{
+    resolve: (user: AuthUser | null) => void;
+    reject: (error: Error) => void;
+  } | null>(null);
 
   // هنا بنستخدم setLoading من الـ hook عشان نتحكم في حالة التحميل المركزية
   const { validateSessionAndUser, loading, setLoading } = useAuthValidation();
-  const { login, adminLogin, signup, logout } = useAuthOperations();
+  const { login: baseLogin, adminLogin: baseAdminLogin, signup, logout: baseLogout } = useAuthOperations();
 
   const checkAuthStatus = useCallback(async () => {
     await validateSessionAndUser(setSession, setUser);
@@ -87,6 +93,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(null);
           setSession(null);
           setLoading(false);
+          // Resolve any pending logout promise
+          if (authStateResolvers.current) {
+            authStateResolvers.current.resolve(null);
+            authStateResolvers.current = null;
+          }
           return;
         }
 
@@ -112,7 +123,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               setUser(null);
               setSession(null);
               toast.error('تم حظر حسابك. تم تسجيل الخروج تلقائياً');
-              return; // setLoading(false) will happen in finally block if we wanted, but here we redirect out
+              // Reject pending promise for banned user
+              if (authStateResolvers.current) {
+                authStateResolvers.current.reject(new Error('User is banned'));
+                authStateResolvers.current = null;
+              }
+              return;
             }
 
             // 4. نجيب البيانات الحقيقية من الداتابيز (بما فيها الـ Role الصح)
@@ -121,11 +137,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // 5. نحدث اليوزر بالبيانات السليمة
             setUser(userData);
             console.log('✅ Profile loaded successfully:', userData.role);
+            
+            // Resolve pending login promise with user data
+            if (authStateResolvers.current) {
+              authStateResolvers.current.resolve(userData);
+              authStateResolvers.current = null;
+            }
 
           } catch (err) {
             console.error('❌ Error fetching profile on login:', err);
             // Fallback safety
             setUser(null);
+            // Reject pending promise on error
+            if (authStateResolvers.current) {
+              authStateResolvers.current.reject(err instanceof Error ? err : new Error('Failed to fetch profile'));
+              authStateResolvers.current = null;
+            }
           } finally {
             // 6. دلوقتي بس نقول للتطبيق "خلاص حملنا"
             setLoading(false);
@@ -152,6 +179,95 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       subscription.unsubscribe();
     };
   }, []); // Remove dependencies to run once
+
+  // Wrapper login function that waits for auth state to be fully updated
+  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
+    // Create a promise that will be resolved when onAuthStateChange completes
+    const authStatePromise = new Promise<AuthUser | null>((resolve, reject) => {
+      authStateResolvers.current = { resolve, reject };
+    });
+
+    try {
+      const success = await baseLogin(email, password);
+      if (!success) {
+        // Clear the resolver if login failed at Supabase level
+        authStateResolvers.current = null;
+        return false;
+      }
+
+      // Wait for the auth state change to complete (profile fetch, etc.)
+      const userData = await Promise.race([
+        authStatePromise,
+        // Timeout after 15 seconds
+        new Promise<null>((_, reject) => 
+          setTimeout(() => reject(new Error('Auth state update timeout')), 15000)
+        )
+      ]);
+
+      return userData !== null;
+    } catch (error) {
+      console.error('❌ Login error:', error);
+      authStateResolvers.current = null;
+      return false;
+    }
+  }, [baseLogin]);
+
+  // Wrapper adminLogin function that waits for auth state to be fully updated
+  const adminLogin = useCallback(async (email: string, password: string): Promise<boolean> => {
+    // Create a promise that will be resolved when onAuthStateChange completes
+    const authStatePromise = new Promise<AuthUser | null>((resolve, reject) => {
+      authStateResolvers.current = { resolve, reject };
+    });
+
+    try {
+      const success = await baseAdminLogin(email, password);
+      if (!success) {
+        // Clear the resolver if login failed at Supabase level
+        authStateResolvers.current = null;
+        return false;
+      }
+
+      // Wait for the auth state change to complete (profile fetch, etc.)
+      const userData = await Promise.race([
+        authStatePromise,
+        // Timeout after 15 seconds
+        new Promise<null>((_, reject) => 
+          setTimeout(() => reject(new Error('Auth state update timeout')), 15000)
+        )
+      ]);
+
+      return userData !== null;
+    } catch (error) {
+      console.error('❌ Admin login error:', error);
+      authStateResolvers.current = null;
+      return false;
+    }
+  }, [baseAdminLogin]);
+
+  // Wrapper logout function that waits for auth state to be fully updated
+  const logout = useCallback(async (): Promise<void> => {
+    // Create a promise that will be resolved when onAuthStateChange completes
+    const authStatePromise = new Promise<AuthUser | null>((resolve) => {
+      authStateResolvers.current = { resolve, reject: () => resolve(null) };
+    });
+
+    try {
+      await baseLogout();
+
+      // Wait for the auth state change to complete
+      await Promise.race([
+        authStatePromise,
+        // Timeout after 5 seconds for logout
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000))
+      ]);
+    } catch (error) {
+      console.error('❌ Logout error:', error);
+      authStateResolvers.current = null;
+      // Force clear state on error
+      setUser(null);
+      setSession(null);
+    }
+  }, [baseLogout]);
 
   const contextValue: AuthContextType = {
     user,
