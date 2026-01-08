@@ -11,6 +11,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { Plus, Trash2, Edit2, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
 
+/**
+ * Sanitize redirect URL to ensure it's an internal path only
+ * Strips any protocol, domain, or localhost prefix
+ */
+const sanitizeRedirectUrl = (url: string): string => {
+  if (!url) return '';
+
+  let cleanUrl = url.trim();
+
+  // Remove any http/https protocol and domain
+  cleanUrl = cleanUrl.replace(/^https?:\/\/[^\/]+/, '');
+
+  // Ensure it starts with /
+  if (cleanUrl && !cleanUrl.startsWith('/')) {
+    cleanUrl = '/' + cleanUrl;
+  }
+
+  return cleanUrl;
+};
+
 interface VendorAd {
   id: string;
   title: string | null;
@@ -20,6 +40,7 @@ interface VendorAd {
   position: number;
   is_active: boolean;
   vendor_id: string;
+  orientation: 'horizontal' | 'vertical';
 }
 
 interface VendorAdsManagementProps {
@@ -41,6 +62,7 @@ const VendorAdsManagement: React.FC<VendorAdsManagementProps> = ({ vendorId }) =
   const [imageUrl, setImageUrl] = useState('');
   const [redirectUrl, setRedirectUrl] = useState('');
   const [position, setPosition] = useState<'top' | 'mid'>('top');
+  const [orientation, setOrientation] = useState<'horizontal' | 'vertical'>('horizontal');
   const [isActive, setIsActive] = useState(true);
 
   const fetchAds = useCallback(async () => {
@@ -86,6 +108,7 @@ const VendorAdsManagement: React.FC<VendorAdsManagementProps> = ({ vendorId }) =
     setImageUrl('');
     setRedirectUrl('');
     setPosition('top');
+    setOrientation('horizontal');
     setIsActive(true);
     setEditingAd(null);
   };
@@ -130,9 +153,10 @@ const VendorAdsManagement: React.FC<VendorAdsManagementProps> = ({ vendorId }) =
           title: title || null,
           description: description || null,
           image_url: imageUrl,
-          redirect_url: redirectUrl || null,
+          redirect_url: sanitizeRedirectUrl(redirectUrl) || null,
           position: positionValue,
-          is_active: isActive
+          is_active: isActive,
+          orientation: orientation
         });
 
       if (error) {
@@ -173,9 +197,10 @@ const VendorAdsManagement: React.FC<VendorAdsManagementProps> = ({ vendorId }) =
           title: title || null,
           description: description || null,
           image_url: imageUrl,
-          redirect_url: redirectUrl || null,
+          redirect_url: sanitizeRedirectUrl(redirectUrl) || null,
           position: positionValue,
           is_active: isActive,
+          orientation: orientation,
           updated_at: new Date().toISOString()
         })
         .eq('id', editingAd.id)
@@ -242,6 +267,7 @@ const VendorAdsManagement: React.FC<VendorAdsManagementProps> = ({ vendorId }) =
     setImageUrl(ad.image_url);
     setRedirectUrl(ad.redirect_url || '');
     setPosition(ad.position < 10 ? 'top' : 'mid');
+    setOrientation(ad.orientation || 'horizontal');
     setIsActive(ad.is_active);
     setShowEditDialog(true);
   };
@@ -302,21 +328,36 @@ const VendorAdsManagement: React.FC<VendorAdsManagementProps> = ({ vendorId }) =
         <Input
           value={redirectUrl}
           onChange={(e) => setRedirectUrl(e.target.value)}
-          placeholder="https://..."
+          placeholder="/product/123 أو /section/عروض"
           dir="ltr"
         />
+        <p className="text-xs text-muted-foreground mt-1">رابط داخلي فقط (مثل: /product/123)</p>
       </div>
-      <div>
-        <Label>الموضع</Label>
-        <Select value={position} onValueChange={(v) => setPosition(v as 'top' | 'mid')}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="top">أعلى الصفحة</SelectItem>
-            <SelectItem value="mid">وسط الصفحة</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label>الموضع</Label>
+          <Select value={position} onValueChange={(v) => setPosition(v as 'top' | 'mid')}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="top">أعلى الصفحة</SelectItem>
+              <SelectItem value="mid">وسط الصفحة</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label>الاتجاه</Label>
+          <Select value={orientation} onValueChange={(v) => setOrientation(v as 'horizontal' | 'vertical')}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="horizontal">أفقي (بانر)</SelectItem>
+              <SelectItem value="vertical">عمودي (ستوري)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <div className="flex items-center gap-2">
         <Switch checked={isActive} onCheckedChange={setIsActive} />
@@ -395,6 +436,8 @@ const VendorAdsManagement: React.FC<VendorAdsManagementProps> = ({ vendorId }) =
                       </span>
                       <span>•</span>
                       <span>{ad.position < 10 ? 'أعلى الصفحة' : 'وسط الصفحة'}</span>
+                      <span>•</span>
+                      <span>{ad.orientation === 'vertical' ? 'عمودي' : 'أفقي'}</span>
                     </div>
                   </div>
                   <div className="flex gap-2">

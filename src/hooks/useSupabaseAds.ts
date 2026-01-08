@@ -11,6 +11,7 @@ interface Ad {
   redirect_url?: string;
   position: number;
   is_active: boolean;
+  orientation?: 'horizontal' | 'vertical';
   created_at: string;
   updated_at: string;
 }
@@ -64,7 +65,8 @@ export const useSupabaseAds = () => {
           image_url: adData.image_url,
           redirect_url: adData.redirect_url,
           position: adData.position,
-          is_active: adData.is_active
+          is_active: adData.is_active,
+          orientation: adData.orientation || 'horizontal'
         }])
         .select()
         .single();
@@ -99,6 +101,7 @@ export const useSupabaseAds = () => {
           redirect_url: updates.redirect_url,
           position: updates.position,
           is_active: updates.is_active,
+          orientation: updates.orientation,
           updated_at: new Date().toISOString()
         })
         .eq('id', id)

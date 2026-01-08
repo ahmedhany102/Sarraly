@@ -9,6 +9,7 @@ interface VendorAd {
   redirect_url: string | null;
   position: number;
   is_active: boolean;
+  orientation: 'horizontal' | 'vertical';
 }
 
 export const useVendorAds = (vendorId: string | undefined) => {
@@ -25,10 +26,10 @@ export const useVendorAds = (vendorId: string | undefined) => {
 
       try {
         setLoading(true);
-        
+
         const { data, error } = await supabase
           .from('ads')
-          .select('id, title, description, image_url, redirect_url, position, is_active')
+          .select('id, title, description, image_url, redirect_url, position, is_active, orientation')
           .eq('vendor_id', vendorId)
           .eq('is_active', true)
           .order('position', { ascending: true });

@@ -9,7 +9,7 @@ import ProductCard from '@/components/ProductCard';
 import { Store, Package, ArrowRight } from 'lucide-react';
 import { useBestSellers, useLastViewed } from '@/hooks/useSections';
 import { ProductCarousel } from '@/components/sections';
-import { useVendorAds } from '@/hooks/useVendorAds';
+import VendorAdCarousel from '@/components/vendor/VendorAdCarousel';
 import VendorStoreHeader from '@/components/vendor/VendorStoreHeader';
 
 const StorePage = () => {
@@ -36,13 +36,6 @@ const StorePage = () => {
   // Vendor-specific sections - NO VENDORID PARAMS, read from context
   const { products: bestSellers, loading: bestSellersLoading } = useBestSellers(12);
   const { products: lastViewed, loading: lastViewedLoading } = useLastViewed(10);
-
-  // Vendor ads
-  const { ads: vendorAds } = useVendorAds(vendorId);
-
-  // Compute ads ONCE, OUTSIDE JSX
-  const topAd = vendorAds.find(ad => ad.position === 0);
-  const middleAds = vendorAds.filter(ad => ad.position === 10);
 
   // Check if filters are active (hides promotional sections)
   const hasFiltersActive = !!(searchQuery || selectedCategory);
@@ -75,23 +68,8 @@ const StorePage = () => {
         */}
         {!hasFiltersActive && (
           <div className="marketing-sections">
-            {/* TOP AD */}
-            {topAd && (
-              <div className="mb-8">
-                <a
-                  href={topAd.redirect_url || '#'}
-                  target={topAd.redirect_url ? '_blank' : undefined}
-                  rel="noopener noreferrer"
-                  className="block w-full rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"
-                >
-                  <img
-                    src={topAd.image_url}
-                    alt={topAd.title || 'Store advertisement'}
-                    className="w-full h-32 md:h-48 object-cover"
-                  />
-                </a>
-              </div>
-            )}
+            {/* TOP ADS CAROUSEL */}
+            <VendorAdCarousel position="top" />
 
             {/* BEST SELLERS - Links to vendor-scoped section */}
             {bestSellers.length > 0 && (
@@ -105,26 +83,8 @@ const StorePage = () => {
               </div>
             )}
 
-            {/* MIDDLE ADS */}
-            {middleAds.length > 0 && (
-              <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-                {middleAds.map((ad) => (
-                  <a
-                    key={ad.id}
-                    href={ad.redirect_url || '#'}
-                    target={ad.redirect_url ? '_blank' : undefined}
-                    rel="noopener noreferrer"
-                    className="block w-full rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"
-                  >
-                    <img
-                      src={ad.image_url}
-                      alt={ad.title || 'Store advertisement'}
-                      className="w-full h-40 md:h-48 object-cover"
-                    />
-                  </a>
-                ))}
-              </div>
-            )}
+            {/* MIDDLE ADS CAROUSEL */}
+            <VendorAdCarousel position="middle" />
 
             {/* RECENTLY VIEWED */}
             {lastViewed.length > 0 && (

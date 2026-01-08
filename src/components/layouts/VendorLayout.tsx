@@ -11,6 +11,7 @@ import OrderTracking from '@/pages/OrderTracking';
 import Favorites from '@/pages/Favorites';
 import VendorLogin from '@/pages/vendor/VendorLogin';
 import VendorSignup from '@/pages/vendor/VendorSignup';
+import VendorFooter from '@/components/vendor/VendorFooter';
 
 /**
  * VendorLayout - Container for all vendor-scoped routes
@@ -26,26 +27,32 @@ import VendorSignup from '@/pages/vendor/VendorSignup';
  */
 const VendorLayout: React.FC = () => {
     return (
-        <Routes>
-            {/* Store pages */}
-            <Route path="" element={<StorePage />} />
-            <Route path="section/:id" element={<SectionPage />} />
-            <Route path="category/:slug" element={<CategoryPage />} />
-            <Route path="product/:id" element={<ProductDetails />} />
+        <>
+            {/* Main content area */}
+            <Routes>
+                {/* Store pages */}
+                <Route path="" element={<StorePage />} />
+                <Route path="section/:id" element={<SectionPage />} />
+                <Route path="category/:slug" element={<CategoryPage />} />
+                <Route path="product/:id" element={<ProductDetails />} />
 
-            {/* Cart & Checkout */}
-            <Route path="cart" element={<Cart />} />
-            <Route path="checkout" element={<Cart />} />
+                {/* Cart & Checkout */}
+                <Route path="cart" element={<Cart />} />
+                <Route path="checkout" element={<Cart />} />
 
-            {/* Auth pages (vendor-scoped with vendor branding) */}
-            <Route path="login" element={<VendorLogin />} />
-            <Route path="signup" element={<VendorSignup />} />
+                {/* Auth pages (vendor-scoped with vendor branding) */}
+                <Route path="login" element={<VendorLogin />} />
+                <Route path="signup" element={<VendorSignup />} />
 
-            {/* Account pages (vendor-scoped to maintain layout) */}
-            <Route path="profile" element={<Profile />} />
-            <Route path="orders" element={<OrderTracking />} />
-            <Route path="favorites" element={<Favorites />} />
-        </Routes>
+                {/* Account pages (vendor-scoped to maintain layout) */}
+                <Route path="profile" element={<Profile />} />
+                <Route path="orders" element={<OrderTracking />} />
+                <Route path="favorites" element={<Favorites />} />
+            </Routes>
+
+            {/* Vendor Footer - appears on all vendor pages */}
+            <VendorFooter />
+        </>
     );
 };
 

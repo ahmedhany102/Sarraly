@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useSupabaseAds } from '@/hooks/useSupabaseAds';
 
 interface Ad {
@@ -14,13 +15,15 @@ interface Ad {
 
 const AdsDisplay: React.FC = () => {
   const { ads, loading } = useSupabaseAds();
+  const navigate = useNavigate();
 
   // Filter only active ads
   const activeAds = ads.filter(ad => ad.is_active);
 
+  // Handle ad click - INTERNAL NAVIGATION ONLY
   const handleAdClick = (ad: Ad) => {
     if (ad.redirect_url) {
-      window.open(ad.redirect_url, '_blank');
+      navigate(ad.redirect_url);
     }
   };
 
@@ -39,14 +42,14 @@ const AdsDisplay: React.FC = () => {
   return (
     <div className="w-full space-y-4">
       {activeAds.map((ad) => (
-        <div 
-          key={ad.id} 
+        <div
+          key={ad.id}
           className={`relative rounded-lg overflow-hidden shadow-md ${ad.redirect_url ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''}`}
           onClick={() => handleAdClick(ad)}
         >
-          <img 
-            src={ad.image_url} 
-            alt={ad.title || 'Advertisement'} 
+          <img
+            src={ad.image_url}
+            alt={ad.title || 'Advertisement'}
             className="w-full h-auto object-cover"
             onError={(e) => {
               console.error('Failed to load ad image:', ad.image_url);
