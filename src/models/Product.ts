@@ -35,5 +35,10 @@ export interface Product {
   created_at?: string;
   updated_at?: string;
   rating?: number;
+  // New fields for ratings & free shipping features
+  is_free_shipping?: boolean;
+  is_fast_shipping?: boolean;
+  average_rating?: number;
+  reviews_count?: number;
   [key: string]: any;
 }

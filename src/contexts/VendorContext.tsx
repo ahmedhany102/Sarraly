@@ -47,6 +47,14 @@ export function useVendorContext(): VendorContextValue {
     return context;
 }
 
+/**
+ * Optional hook for pages used in both global and vendor contexts.
+ * Returns null when outside vendor context, returns vendor data when inside.
+ */
+export function useOptionalVendorContext(): VendorContextValue | null {
+    return useContext(VendorContext);
+}
+
 // ===========================================
 // LOADING STATE
 // ===========================================

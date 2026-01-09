@@ -1,10 +1,11 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import UserOrders from '@/components/UserOrders';
 import VendorStoreHeader from '@/components/vendor/VendorStoreHeader';
-import { useVendorBySlug, useVendorCategories } from '@/hooks/useVendors';
+import { useOptionalVendorContext } from '@/contexts/VendorContext';
+import { useVendorCategories } from '@/hooks/useVendors';
 
 const OrderTracking = () => {
   const { user, loading } = useAuth();
@@ -14,27 +15,34 @@ const OrderTracking = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
 
-  // Detect vendor context from URL path
-  const vendorContext = useMemo(() => {
-    const match = location.pathname.match(/^\/store\/([^/]+)/);
-    if (match) {
-      return { isVendorContext: true, vendorSlug: match[1] };
+  // Use optional vendor context - returns null when outside /store/:vendorSlug/*
+  const vendorCtx = useOptionalVendorContext();
+  const isVendorContext = !!vendorCtx;
+  const vendorId = vendorCtx?.vendorId;
+  const vendorSlug = vendorCtx?.vendorSlug;
+
+  // Get vendor categories for header (uses vendorId from context, guaranteed available)
+  const { mainCategories, subcategories } = useVendorCategories(vendorId);
+
+  // Redirect to login if not authenticated, saving current URL
+  React.useEffect(() => {
+    if (!loading && !user) {
+      sessionStorage.setItem('redirectAfterLogin', location.pathname + location.search);
+      // Redirect to vendor login when in vendor context
+      if (isVendorContext && vendorSlug) {
+        navigate(`/store/${vendorSlug}/login`);
+      } else {
+        navigate('/login');
+      }
     }
-    return { isVendorContext: false, vendorSlug: null };
-  }, [location.pathname]);
-
-  const { isVendorContext, vendorSlug } = vendorContext;
-
-  // Get vendor data for header
-  const { vendor } = useVendorBySlug(vendorSlug || undefined);
-  const { mainCategories, subcategories } = useVendorCategories(vendor?.id);
+  }, [user, loading, location.pathname, location.search, navigate, isVendorContext, vendorSlug]);
 
   if (loading) {
     return (
       <Layout hideGlobalHeader={isVendorContext} hideFooter={isVendorContext}>
-        {isVendorContext && vendor?.id && (
+        {isVendorContext && vendorId && (
           <VendorStoreHeader
-            vendorId={vendor.id}
+            vendorId={vendorId}
             mainCategories={mainCategories}
             subcategories={subcategories}
             searchQuery={searchQuery}
@@ -54,19 +62,6 @@ const OrderTracking = () => {
     );
   }
 
-  // Redirect to login if not authenticated, saving current URL
-  React.useEffect(() => {
-    if (!loading && !user) {
-      sessionStorage.setItem('redirectAfterLogin', location.pathname + location.search);
-      // Redirect to vendor login when in vendor context
-      if (isVendorContext && vendorSlug) {
-        navigate(`/store/${vendorSlug}/login`);
-      } else {
-        navigate('/login');
-      }
-    }
-  }, [user, loading, location.pathname, location.search, navigate, isVendorContext, vendorSlug]);
-
   if (!user) {
     return null; // Wait for redirect
   }
@@ -74,9 +69,9 @@ const OrderTracking = () => {
   return (
     <Layout hideGlobalHeader={isVendorContext} hideFooter={isVendorContext}>
       {/* Vendor Header when in vendor context */}
-      {isVendorContext && vendor?.id && (
+      {isVendorContext && vendorId && (
         <VendorStoreHeader
-          vendorId={vendor.id}
+          vendorId={vendorId}
           mainCategories={mainCategories}
           subcategories={subcategories}
           searchQuery={searchQuery}

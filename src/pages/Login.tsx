@@ -83,7 +83,7 @@ const Login = () => {
       <Layout>
         <div className="flex justify-center items-center min-h-[80vh]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-800 mx-auto"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
             <p className="mt-2 text-gray-600">Loading...</p>
           </div>
         </div>
@@ -94,14 +94,14 @@ const Login = () => {
   return (
     <Layout>
       <div className="flex justify-center items-center min-h-[80vh] w-full">
-        <Card className="w-full max-w-md shadow-lg border-green-800">
-          <CardHeader className="bg-gradient-to-r from-green-900 to-black text-white rounded-t-md">
+        <Card className="w-full max-w-md shadow-lg">
+          <CardHeader className="bg-primary text-primary-foreground rounded-t-md">
             <CardTitle className="text-center text-2xl">User Login</CardTitle>
-            <CardDescription className="text-center text-gray-100">
+            <CardDescription className="text-center text-primary-foreground/80">
               Enter your credentials to access your account
             </CardDescription>
           </CardHeader>
-          <CardContent className="pt-6 bg-gradient-to-b from-white to-green-50 dark:from-gray-800 dark:to-gray-900">
+          <CardContent className="pt-6">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
@@ -119,7 +119,7 @@ const Login = () => {
                           {...field}
                           autoComplete="username"
                           disabled={isSubmitting}
-                          className="transition-all hover:border-green-500 focus:ring-green-700 bg-white/80 dark:bg-gray-800"
+                          className="transition-all bg-white/80 dark:bg-gray-800"
                         />
                       </FormControl>
                       <FormMessage />
@@ -141,7 +141,7 @@ const Login = () => {
                           {...field}
                           autoComplete="current-password"
                           disabled={isSubmitting}
-                          className="transition-all hover:border-green-500 focus:ring-green-700 bg-white/80 dark:bg-gray-800"
+                          className="transition-all bg-white/80 dark:bg-gray-800"
                         />
                       </FormControl>
                       <FormMessage />
@@ -150,7 +150,7 @@ const Login = () => {
                 />
                 <Button
                   type="submit"
-                  className="w-full bg-green-800 hover:bg-green-900"
+                  className="w-full"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
@@ -165,10 +165,10 @@ const Login = () => {
               </form>
             </Form>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-2 bg-green-50 rounded-b-md dark:bg-gray-900 py-4">
+          <CardFooter className="flex flex-col space-y-2 py-4">
             <div className="text-center w-full">
-              <span className="text-sm text-gray-700 dark:text-gray-300">Don't have an account? </span>
-              <Link to="/signup" className="text-green-800 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 font-medium">
+              <span className="text-sm text-muted-foreground">Don't have an account? </span>
+              <Link to="/signup" className="text-primary hover:underline font-medium">
                 Sign up
               </Link>
             </div>

@@ -8,8 +8,10 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: true,
     port: 8080,
+    // SPA fallback for deep routes on refresh
+    middlewareMode: false,
   },
-  // SPA fallback - Vite handles this by default via index.html
+  // SPA fallback - ensures index.html is served for all routes
   appType: 'spa',
   plugins: [
     react(),

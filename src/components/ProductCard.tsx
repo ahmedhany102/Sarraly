@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Product } from '@/models/Product';
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { useNavigate, Link } from 'react-router-dom';
-import { ShoppingCart, Heart, Store } from 'lucide-react';
+import { ShoppingCart, Heart, Store, Star, Truck, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import CartDatabase from "@/models/CartDatabase";
 import { ProductVariant } from '@/hooks/useProductVariants';
@@ -200,6 +200,15 @@ const ProductCard = ({ product, className = '', variants = [] }: ProductCardProp
           </div>
         )}
 
+        {/* Rating Badge - Top Left of Image */}
+        {(product.average_rating ?? 0) > 0 && (
+          <div className="absolute top-2 left-10 bg-black/60 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1 z-10">
+            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+            <span>{(product.average_rating ?? 0).toFixed(1)}</span>
+            <span className="text-white/70">({product.reviews_count ?? 0})</span>
+          </div>
+        )}
+
         {/* Out of stock overlay */}
         {isOutOfStock && (
           <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-t-lg z-20">
@@ -223,6 +232,22 @@ const ProductCard = ({ product, className = '', variants = [] }: ProductCardProp
             <Store className="w-3 h-3" />
             <span>بواسطة: {product.vendor_name}</span>
           </Link>
+        )}
+
+        {/* Free Shipping Badge */}
+        {product.is_free_shipping && (
+          <div className="flex items-center gap-1 text-xs text-primary font-medium mb-1">
+            <Truck className="w-3 h-3" />
+            <span>شحن مجاني</span>
+          </div>
+        )}
+
+        {/* Fast Shipping Badge */}
+        {product.is_fast_shipping && (
+          <div className="flex items-center gap-1 text-xs text-amber-500 font-medium mb-1">
+            <Zap className="w-3 h-3" />
+            <span>شحن سريع</span>
+          </div>
         )}
 
         {/* Price section */}

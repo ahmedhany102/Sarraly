@@ -33,7 +33,7 @@ export const useVendorProfile = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setProfile(null);
@@ -209,8 +209,8 @@ export const useAdminVendorProfiles = () => {
       setError(null);
 
       const { data, error: fetchError } = await supabase
-        .rpc('get_vendor_profiles_with_users', { 
-          status_filter: statusFilter || null 
+        .rpc('get_vendor_profiles_with_users', {
+          status_filter: statusFilter || null
         });
 
       if (fetchError) {
@@ -230,15 +230,36 @@ export const useAdminVendorProfiles = () => {
 
   const updateVendorStatus = async (vendorProfileId: string, newStatus: VendorStatus) => {
     try {
+      // DEBUG: Log exactly what we're sending
+      console.log('========== UPDATE VENDOR STATUS DEBUG ==========');
+      console.log('Sending to RPC:', {
+        target_vendor_profile_id: vendorProfileId,
+        new_status: newStatus
+      });
+      console.log('vendorProfileId type:', typeof vendorProfileId);
+      console.log('newStatus type:', typeof newStatus);
+
       const { data, error } = await supabase
         .rpc('update_vendor_status', {
           target_vendor_profile_id: vendorProfileId,
           new_status: newStatus
         });
 
+      // DEBUG: Log the response
+      console.log('RPC Response - data:', data);
+      console.log('RPC Response - error:', error);
+      console.log('================================================');
+
       if (error) {
         console.error('Error updating vendor status:', error);
         toast.error('فشل في تحديث حالة البائع: ' + error.message);
+        return false;
+      }
+
+      // CRITICAL: Check if update actually succeeded
+      if (data === false) {
+        console.error('Update returned false - no rows affected');
+        toast.error('فشل في تحديث حالة البائع: لم يتم العثور على البائع');
         return false;
       }
 

@@ -102,7 +102,7 @@ const Signup = () => {
       <Layout>
         <div className="flex justify-center items-center min-h-[80vh]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-800 mx-auto"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
             <p className="mt-2 text-gray-600">Loading...</p>
           </div>
         </div>
@@ -114,28 +114,28 @@ const Signup = () => {
     return (
       <Layout>
         <div className="flex justify-center items-center min-h-[80vh]">
-          <Card className="w-full max-w-md shadow-lg border-green-800">
-            <CardHeader className="bg-gradient-to-r from-green-800 to-black text-white rounded-t-md">
+          <Card className="w-full max-w-md shadow-lg">
+            <CardHeader className="bg-primary text-primary-foreground rounded-t-md">
               <CardTitle className="text-center text-2xl">Account Created!</CardTitle>
             </CardHeader>
             <CardContent className="pt-6 text-center">
               <div className="mb-4">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900">Successfully Registered!</h3>
-                <p className="text-gray-600 mt-2">
+                <h3 className="text-lg font-semibold text-foreground">Successfully Registered!</h3>
+                <p className="text-muted-foreground mt-2">
                   Your account has been created. You will be redirected to the login page shortly.
                 </p>
-                <p className="text-sm text-gray-500 mt-4">
+                <p className="text-sm text-muted-foreground mt-4">
                   If email confirmation is enabled, please check your email before logging in.
                 </p>
               </div>
               <Button
                 onClick={() => navigate("/login")}
-                className="w-full bg-green-800 hover:bg-green-900"
+                className="w-full"
               >
                 Go to Login
               </Button>
@@ -149,14 +149,14 @@ const Signup = () => {
   return (
     <Layout>
       <div className="flex justify-center items-center min-h-[80vh]">
-        <Card className="w-full max-w-md shadow-lg border-green-800 animate-fade-in">
-          <CardHeader className="bg-gradient-to-r from-green-800 to-black text-white rounded-t-md">
+        <Card className="w-full max-w-md shadow-lg animate-fade-in">
+          <CardHeader className="bg-primary text-primary-foreground rounded-t-md">
             <CardTitle className="text-center text-2xl">Create Account</CardTitle>
-            <CardDescription className="text-center text-gray-100">
+            <CardDescription className="text-center text-primary-foreground/80">
               Enter your information to sign up for an account
             </CardDescription>
           </CardHeader>
-          <CardContent className="pt-6 bg-gradient-to-b from-white to-green-50 dark:from-gray-800 dark:to-gray-900">
+          <CardContent className="pt-6">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
@@ -171,7 +171,7 @@ const Signup = () => {
                           {...field}
                           autoComplete="name"
                           disabled={isSubmitting}
-                          className="transition-all hover:border-green-500 focus:ring-green-700 bg-white/80 dark:bg-gray-800"
+                          className="transition-all"
                         />
                       </FormControl>
                       <FormMessage />
@@ -190,7 +190,7 @@ const Signup = () => {
                           {...field}
                           autoComplete="email"
                           disabled={isSubmitting}
-                          className="transition-all hover:border-green-500 focus:ring-green-700 bg-white/80 dark:bg-gray-800"
+                          className="transition-all"
                         />
                       </FormControl>
                       <FormMessage />
@@ -211,7 +211,7 @@ const Signup = () => {
                             {...field}
                             autoComplete="new-password"
                             disabled={isSubmitting}
-                            className="pr-10 transition-all hover:border-green-500 focus:ring-green-700 bg-white/80 dark:bg-gray-800"
+                            className="pr-10 transition-all"
                           />
                           <button
                             type="button"
@@ -239,7 +239,7 @@ const Signup = () => {
                           {...field}
                           autoComplete="new-password"
                           disabled={isSubmitting}
-                          className="transition-all hover:border-green-500 focus:ring-green-700 bg-white/80 dark:bg-gray-800"
+                          className="transition-all"
                         />
                       </FormControl>
                       <FormMessage />
@@ -248,7 +248,7 @@ const Signup = () => {
                 />
                 <Button
                   type="submit"
-                  className="w-full bg-green-800 hover:bg-green-900 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                  className="w-full transition-transform hover:scale-[1.02] active:scale-[0.98]"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
@@ -263,12 +263,12 @@ const Signup = () => {
               </form>
             </Form>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-2 bg-green-50 rounded-b-md dark:bg-gray-900 py-4">
+          <CardFooter className="flex flex-col space-y-2 py-4">
             <div className="text-center w-full">
-              <span className="text-sm text-gray-700 dark:text-gray-300">Already have an account? </span>
+              <span className="text-sm text-muted-foreground">Already have an account? </span>
               <Link
                 to="/login"
-                className="text-green-800 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 font-medium"
+                className="text-primary hover:underline font-medium"
               >
                 Log in
               </Link>

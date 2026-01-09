@@ -27,32 +27,34 @@ import VendorFooter from '@/components/vendor/VendorFooter';
  */
 const VendorLayout: React.FC = () => {
     return (
-        <>
-            {/* Main content area */}
-            <Routes>
-                {/* Store pages */}
-                <Route path="" element={<StorePage />} />
-                <Route path="section/:id" element={<SectionPage />} />
-                <Route path="category/:slug" element={<CategoryPage />} />
-                <Route path="product/:id" element={<ProductDetails />} />
+        <div className="min-h-screen flex flex-col">
+            {/* Main content area - grows to push footer down */}
+            <div className="flex-1">
+                <Routes>
+                    {/* Store pages */}
+                    <Route path="" element={<StorePage />} />
+                    <Route path="section/:id" element={<SectionPage />} />
+                    <Route path="category/:slug" element={<CategoryPage />} />
+                    <Route path="product/:id" element={<ProductDetails />} />
 
-                {/* Cart & Checkout */}
-                <Route path="cart" element={<Cart />} />
-                <Route path="checkout" element={<Cart />} />
+                    {/* Cart & Checkout */}
+                    <Route path="cart" element={<Cart />} />
+                    <Route path="checkout" element={<Cart />} />
 
-                {/* Auth pages (vendor-scoped with vendor branding) */}
-                <Route path="login" element={<VendorLogin />} />
-                <Route path="signup" element={<VendorSignup />} />
+                    {/* Auth pages (vendor-scoped with vendor branding) */}
+                    <Route path="login" element={<VendorLogin />} />
+                    <Route path="signup" element={<VendorSignup />} />
 
-                {/* Account pages (vendor-scoped to maintain layout) */}
-                <Route path="profile" element={<Profile />} />
-                <Route path="orders" element={<OrderTracking />} />
-                <Route path="favorites" element={<Favorites />} />
-            </Routes>
+                    {/* Account pages (vendor-scoped to maintain layout) */}
+                    <Route path="profile" element={<Profile />} />
+                    <Route path="orders" element={<OrderTracking />} />
+                    <Route path="favorites" element={<Favorites />} />
+                </Routes>
+            </div>
 
-            {/* Vendor Footer - appears on all vendor pages */}
+            {/* Vendor Footer - stays at bottom */}
             <VendorFooter />
-        </>
+        </div>
     );
 };
 

@@ -162,8 +162,10 @@ export const useVendorProducts = (vendorId: string | undefined, categoryId?: str
     try {
       setLoading(true);
 
+      // Use the view that includes average_rating and reviews_count
+      // Cast to 'products' to satisfy TypeScript - the view has same columns + extra
       let query = supabase
-        .from('products')
+        .from('products_with_ratings' as 'products')
         .select('*')
         .eq('vendor_id', vendorId)
         .in('status', ['active', 'approved']);

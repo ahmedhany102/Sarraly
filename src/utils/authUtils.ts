@@ -12,7 +12,7 @@ export const fetchUserWithRetry = async (retries = 2, delayMs = 500): Promise<Us
     try {
       console.log(`🔄 Attempt ${attempt} to fetch user data`);
       const { data: { user }, error } = await supabase.auth.getUser();
-      
+
       if (error) {
         console.log(`❌ Attempt ${attempt} failed:`, error.message);
         if (attempt < retries) {
@@ -21,7 +21,7 @@ export const fetchUserWithRetry = async (retries = 2, delayMs = 500): Promise<Us
         }
         return null;
       }
-      
+
       if (user) {
         console.log(`✅ User data fetched successfully on attempt ${attempt}`);
         return user;
@@ -40,7 +40,7 @@ export const fetchUserWithRetry = async (retries = 2, delayMs = 500): Promise<Us
 export const fetchUserProfile = async (userId: string, userEmail: string): Promise<AuthUser> => {
   try {
     console.log('📋 Fetching user profile for:', userId, userEmail);
-    
+
     const { data: profile, error } = await supabase
       .from('profiles')
       .select('*')
@@ -60,19 +60,26 @@ export const fetchUserProfile = async (userId: string, userEmail: string): Promi
     }
 
     // Fetch user role from secure user_roles table
+    console.log('🔍 Fetching user_roles for:', userId);
     const { data: roles, error: rolesError } = await supabase
       .from('user_roles')
       .select('role')
       .eq('user_id', userId);
 
+    // DEBUG: Log what we got back
+    console.log('📋 user_roles query result:', { roles, error: rolesError });
+
     if (rolesError) {
       console.error('❌ Error fetching user roles:', rolesError);
+      console.error('⚠️ This may mean RLS policy is missing! User cannot see their own roles.');
     }
 
     // Determine user role based on their roles in user_roles table
     const isSuperAdmin = roles?.some(r => r.role === 'super_admin') || false;
     const isAdmin = roles?.some(r => r.role === 'admin' || r.role === 'super_admin') || false;
     const isVendor = roles?.some(r => r.role === 'vendor_admin') || false;
+
+    console.log('👤 Role determination:', { isSuperAdmin, isAdmin, isVendor, rolesFound: roles?.length || 0 });
 
     // Determine the highest role
     const getUserRole = (): 'SUPER_ADMIN' | 'ADMIN' | 'VENDOR' | 'USER' => {
@@ -86,7 +93,7 @@ export const fetchUserProfile = async (userId: string, userEmail: string): Promi
 
     if (!profile) {
       console.log('👤 Creating new profile for user:', userEmail);
-      
+
       const { data: newProfile, error: insertError } = await supabase
         .from('profiles')
         .insert({
@@ -105,7 +112,7 @@ export const fetchUserProfile = async (userId: string, userEmail: string): Promi
         console.error('❌ Failed to create profile:', insertError);
         throw insertError;
       }
-      
+
       return {
         id: newProfile.id,
         email: newProfile.email,

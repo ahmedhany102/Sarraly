@@ -122,7 +122,13 @@ const Cart = () => {
         : '/checkout';
       sessionStorage.setItem('redirectAfterLogin', checkoutPath);
       toast.info('الرجاء تسجيل الدخول لإكمال الطلب');
-      navigate('/login');
+
+      // Redirect to vendor login when inside vendor store
+      if (isVendorContext && vendorSlug) {
+        navigate(`/store/${vendorSlug}/login`);
+      } else {
+        navigate('/login');
+      }
       return;
     }
 
@@ -145,9 +151,15 @@ const Cart = () => {
       await cartDb.clearCart();
       setCartItems([]);
 
-      // Show success message and redirect
+      // Show success message and redirect based on context
       toast.success('Order placed successfully!');
-      navigate('/orders');
+
+      // Stay in vendor context if applicable
+      if (isVendorContext && vendorSlug) {
+        navigate(`/store/${vendorSlug}/orders`);
+      } else {
+        navigate('/orders');
+      }
     } catch (error) {
       console.error('Error completing order:', error);
     }
@@ -223,10 +235,10 @@ const Cart = () => {
       )}
       <div className="container max-w-6xl mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-2 mb-6 bg-gradient-to-r from-green-900 to-black">
+          <TabsList className="grid grid-cols-2 mb-6 bg-primary">
             <TabsTrigger
               value="cart"
-              className="data-[state=active]:bg-green-200 data-[state=active]:text-green-800 py-3"
+              className="data-[state=active]:bg-primary-foreground data-[state=active]:text-primary py-3"
               disabled={activeTab === 'checkout'}
             >
               <ShoppingCart className="h-4 w-4 mr-2" />
@@ -234,7 +246,7 @@ const Cart = () => {
             </TabsTrigger>
             <TabsTrigger
               value="checkout"
-              className="data-[state=active]:bg-green-200 data-[state=active]:text-green-800 py-3"
+              className="data-[state=active]:bg-primary-foreground data-[state=active]:text-primary py-3"
               disabled={cartItems.length === 0}
             >
               <CircleDollarSign className="h-4 w-4 mr-2" />
@@ -247,7 +259,7 @@ const Cart = () => {
 
             {isLoading ? (
               <div className="flex justify-center items-center h-40">
-                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-green-500"></div>
+                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
               </div>
             ) : cartItems.length === 0 ? (
               <div className="text-center py-10">
@@ -256,7 +268,6 @@ const Cart = () => {
                 <p className="text-gray-500 mb-6">Add items to your cart to proceed with checkout.</p>
                 <Button
                   onClick={handleContinueShopping}
-                  className="bg-green-800 hover:bg-green-900"
                 >
                   Browse Products
                 </Button>
@@ -265,7 +276,7 @@ const Cart = () => {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-green-900 to-black text-white py-3">
+                    <CardHeader className="bg-primary text-primary-foreground py-3">
                       <CardTitle>Cart Items ({cartItems.length})</CardTitle>
                     </CardHeader>
                     <CardContent className="p-4">
@@ -336,7 +347,7 @@ const Cart = () => {
 
                 <div>
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-green-900 to-black text-white py-3">
+                    <CardHeader className="bg-primary text-primary-foreground py-3">
                       <CardTitle>Order Summary</CardTitle>
                     </CardHeader>
                     <CardContent className="p-4 space-y-4">
@@ -355,7 +366,7 @@ const Cart = () => {
                       </div>
 
                       <Button
-                        className="w-full bg-green-800 hover:bg-green-900 mt-4"
+                        className="w-full mt-4"
                         onClick={handleProceedToCheckout}
                       >
                         Proceed to Checkout
@@ -435,7 +446,7 @@ const Cart = () => {
                         <span>{shippingFee.toFixed(2)} EGP</span>
                       </div>
                       {appliedCoupon && (
-                        <div className="flex justify-between text-sm text-green-600">
+                        <div className="flex justify-between text-sm text-primary">
                           <span>Discount ({appliedCoupon.code})</span>
                           <span>-{discountAmount.toFixed(2)} EGP</span>
                         </div>
@@ -459,14 +470,13 @@ const Cart = () => {
                           />
                           <Button
                             onClick={handleApplyCoupon}
-                            className="bg-green-800 hover:bg-green-900"
                           >
                             Apply
                           </Button>
                         </div>
                       ) : (
-                        <div className="flex items-center justify-between bg-green-50 p-2 rounded">
-                          <span className="text-sm text-green-800">
+                        <div className="flex items-center justify-between bg-primary/10 p-2 rounded">
+                          <span className="text-sm text-primary">
                             Coupon applied: {appliedCoupon.code} ({appliedCoupon.discount}% off)
                           </span>
                           <Button

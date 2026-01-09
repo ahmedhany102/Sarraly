@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Store, CheckCircle, Clock, XCircle, AlertCircle } from 'lucide-react';
 import { getStatusLabel, getStatusColor } from '@/hooks/useVendorProfile';
+import { supabase } from '@/integrations/supabase/client';
 
 const BecomeVendor = () => {
   const { user, loading: authLoading, isVendor } = useAuth();
@@ -76,11 +77,10 @@ const BecomeVendor = () => {
         <div className="container mx-auto px-4 py-12">
           <Card className="max-w-lg mx-auto">
             <CardHeader className="text-center">
-              <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-                profile.status === 'approved' ? 'bg-green-100' : 
+              <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${profile.status === 'approved' ? 'bg-green-100' :
                 profile.status === 'pending' ? 'bg-yellow-100' :
-                profile.status === 'rejected' ? 'bg-red-100' : 'bg-orange-100'
-              }`}>
+                  profile.status === 'rejected' ? 'bg-red-100' : 'bg-orange-100'
+                }`}>
                 <Icon className={`w-8 h-8 ${config.iconColor}`} />
               </div>
               <CardTitle>{config.title}</CardTitle>
@@ -98,7 +98,26 @@ const BecomeVendor = () => {
               </div>
 
               {profile.status === 'approved' && (
-                <Button className="w-full" onClick={() => navigate('/vendor')}>
+                <Button
+                  className="w-full"
+                  onClick={async () => {
+                    // Force refresh auth session to get new 'vendor_admin' role
+                    console.log('🔄 Refreshing session before dashboard access...');
+                    try {
+                      // Trigger a profile refetch by refreshing the session
+                      const { data, error } = await supabase.auth.refreshSession();
+                      if (error) {
+                        console.error('Session refresh error:', error);
+                      } else {
+                        console.log('✅ Session refreshed, navigating to dashboard...');
+                      }
+                    } catch (e) {
+                      console.error('Session refresh failed:', e);
+                    }
+                    // Navigate even if refresh fails - let the dashboard handle auth
+                    window.location.href = '/vendor';
+                  }}
+                >
                   <Store className="w-4 h-4 mr-2" />
                   الذهاب إلى لوحة التحكم
                 </Button>
@@ -124,7 +143,7 @@ const BecomeVendor = () => {
             ابدأ رحلتك معنا وقم ببيع منتجاتك لآلاف العملاء. تقدم بطلبك الآن وسيتم مراجعته من قبل فريقنا.
           </p>
         </div>
-        
+
         <VendorApplyForm onSubmit={handleApply} />
       </div>
     </Layout>

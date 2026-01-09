@@ -1,10 +1,10 @@
-
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Navigate, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useOptionalVendorContext } from "@/contexts/VendorContext";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -16,7 +16,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { LogOut } from "lucide-react";
 import VendorStoreHeader from "@/components/vendor/VendorStoreHeader";
 import { useVendorCategories } from "@/hooks/useVendors";
-import { useVendorBySlug } from "@/hooks/useVendors";
 
 const passwordSchema = z.object({
   currentPassword: z.string().min(1, { message: "Current password is required" }),
@@ -33,9 +32,16 @@ const passwordSchema = z.object({
 type PasswordFormValues = z.infer<typeof passwordSchema>;
 
 const Profile = () => {
+  // ===========================================
+  // ALL HOOKS MUST BE DECLARED AT THE TOP
+  // No conditional returns before these hooks
+  // ===========================================
+
   const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // State hooks
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -43,21 +49,16 @@ const Profile = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
 
-  // Detect vendor context from URL path
-  const vendorContext = useMemo(() => {
-    const match = location.pathname.match(/^\/store\/([^/]+)/);
-    if (match) {
-      return { isVendorContext: true, vendorSlug: match[1] };
-    }
-    return { isVendorContext: false, vendorSlug: null };
-  }, [location.pathname]);
+  // Use optional vendor context - returns null when outside /store/:vendorSlug/*
+  const vendorCtx = useOptionalVendorContext();
+  const isVendorContext = !!vendorCtx;
+  const vendorId = vendorCtx?.vendorId;
+  const vendorSlug = vendorCtx?.vendorSlug;
 
-  const { isVendorContext, vendorSlug } = vendorContext;
+  // Get vendor categories for header
+  const { mainCategories, subcategories } = useVendorCategories(vendorId);
 
-  // Get vendor data for header
-  const { vendor } = useVendorBySlug(vendorSlug || undefined);
-  const { mainCategories, subcategories } = useVendorCategories(vendor?.id);
-
+  // Form hook
   const form = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordSchema),
     defaultValues: {
@@ -66,6 +67,24 @@ const Profile = () => {
       confirmPassword: "",
     },
   });
+
+  // Redirect to login if not authenticated - THIS MUST BE AFTER ALL OTHER HOOKS
+  useEffect(() => {
+    if (!loading && !user) {
+      sessionStorage.setItem('redirectAfterLogin', location.pathname + location.search);
+      // Redirect to vendor login when in vendor context
+      if (isVendorContext && vendorSlug) {
+        navigate(`/store/${vendorSlug}/login`);
+      } else {
+        navigate('/login');
+      }
+    }
+  }, [user, loading, location.pathname, location.search, navigate, isVendorContext, vendorSlug]);
+
+  // ===========================================
+  // NOW WE CAN HAVE CONDITIONAL RETURNS
+  // All hooks are already declared above
+  // ===========================================
 
   const onSubmit = async (data: PasswordFormValues) => {
     if (!user || !user.email) {
@@ -134,12 +153,13 @@ const Profile = () => {
     }
   };
 
+  // Loading state - AFTER all hooks
   if (loading) {
     return (
       <Layout hideGlobalHeader={isVendorContext} hideFooter={isVendorContext}>
-        {isVendorContext && vendor?.id && (
+        {isVendorContext && vendorId && (
           <VendorStoreHeader
-            vendorId={vendor.id}
+            vendorId={vendorId}
             mainCategories={mainCategories}
             subcategories={subcategories}
             searchQuery={searchQuery}
@@ -151,35 +171,29 @@ const Profile = () => {
           />
         )}
         <div className="flex justify-center items-center h-64">
-          <p>Loading...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-800"></div>
         </div>
       </Layout>
     );
   }
 
-  // Redirect to login if not authenticated, saving current URL
-  React.useEffect(() => {
-    if (!loading && !user) {
-      sessionStorage.setItem('redirectAfterLogin', location.pathname + location.search);
-      // Redirect to vendor login when in vendor context
-      if (isVendorContext && vendorSlug) {
-        navigate(`/store/${vendorSlug}/login`);
-      } else {
-        navigate('/login');
-      }
-    }
-  }, [user, loading, location.pathname, location.search, navigate, isVendorContext, vendorSlug]);
-
+  // Not authenticated - wait for redirect effect
   if (!user) {
-    return null; // Wait for redirect
+    return (
+      <Layout hideGlobalHeader={isVendorContext} hideFooter={isVendorContext}>
+        <div className="flex justify-center items-center h-64">
+          <p>Redirecting to login...</p>
+        </div>
+      </Layout>
+    );
   }
 
   return (
     <Layout hideGlobalHeader={isVendorContext} hideFooter={isVendorContext}>
       {/* Vendor Header when in vendor context */}
-      {isVendorContext && vendor?.id && (
+      {isVendorContext && vendorId && (
         <VendorStoreHeader
-          vendorId={vendor.id}
+          vendorId={vendorId}
           mainCategories={mainCategories}
           subcategories={subcategories}
           searchQuery={searchQuery}

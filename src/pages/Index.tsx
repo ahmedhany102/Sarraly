@@ -1,16 +1,17 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import ProductCatalog from '@/components/ProductCatalog';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader } from '@/components/ui/loader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Store, ShoppingBag } from 'lucide-react';
-import VendorsGrid from '@/components/VendorsGrid';
 import DynamicSections from '@/components/sections/DynamicSections';
 
 const Index = () => {
   const { user, loading } = useAuth();
-  const [activeTab, setActiveTab] = React.useState<'home' | 'products' | 'vendors'>('home');
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = React.useState<'home' | 'products'>('home');
 
   // Show loading state while maintaining layout to prevent CLS
   if (loading) {
@@ -47,7 +48,15 @@ const Index = () => {
               <ShoppingBag className="w-4 h-4" />
               المنتجات
             </TabsTrigger>
-            <TabsTrigger value="vendors" className="flex items-center gap-2">
+            {/* Stores tab navigates to /vendors page */}
+            <TabsTrigger
+              value="vendors"
+              className="flex items-center gap-2"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate('/vendors');
+              }}
+            >
               <Store className="w-4 h-4" />
               المتاجر
             </TabsTrigger>
@@ -61,12 +70,6 @@ const Index = () => {
           <TabsContent value="products" className="mt-6">
             {/* Product Catalog with filters */}
             <ProductCatalog />
-          </TabsContent>
-
-          <TabsContent value="vendors" className="mt-6">
-            {/* Vendors Grid */}
-            <h2 className="text-2xl font-bold mb-6">تصفح المتاجر</h2>
-            <VendorsGrid />
           </TabsContent>
         </Tabs>
       </div>

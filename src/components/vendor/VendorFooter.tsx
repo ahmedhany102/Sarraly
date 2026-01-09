@@ -35,7 +35,7 @@ const VendorFooter: React.FC = () => {
 
     if (loading) {
         return (
-            <footer className="bg-muted/50 border-t mt-8 pb-20 md:pb-6">
+            <footer className="bg-muted/50 border-t mt-8 pb-20 md:pb-16">
                 <div className="container mx-auto px-4 py-8">
                     <div className="flex flex-col gap-4">
                         <Skeleton className="h-8 w-48 mx-auto" />
@@ -54,7 +54,7 @@ const VendorFooter: React.FC = () => {
         settings?.show_profile_link || settings?.show_orders_link;
 
     return (
-        <footer className="bg-muted/50 border-t mt-8 pb-20 md:pb-6">
+        <footer className="bg-muted/50 border-t mt-8 pb-20 md:pb-16">
             <div className="container mx-auto px-4 py-8">
                 {/* Quick Links Section */}
                 {hasQuickLinks && (

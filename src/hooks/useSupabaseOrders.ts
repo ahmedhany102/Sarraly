@@ -15,18 +15,18 @@ export const useSupabaseOrders = () => {
     try {
       setLoading(true);
       console.log('Fetching orders from Supabase...');
-      
+
       const { data, error } = await supabase
         .from('orders')
         .select('*')
         .order('created_at', { ascending: false });
-      
+
       if (error) {
         console.error('Error fetching orders:', error);
         toast.error('Failed to load orders');
         return;
       }
-      
+
       console.log('Successfully fetched orders:', data);
       setOrders(data || []);
     } catch (error) {
@@ -40,7 +40,7 @@ export const useSupabaseOrders = () => {
   const addOrder = async (orderData) => {
     try {
       console.log('Adding order to database:', orderData);
-      
+
       // Strict validation for required fields
       if (!orderData.customer_info?.name) {
         const errorMsg = 'Customer name is required';
@@ -48,20 +48,20 @@ export const useSupabaseOrders = () => {
         toast.error(errorMsg);
         throw new Error(errorMsg);
       }
-      
+
       if (!orderData.customer_info?.email) {
         const errorMsg = 'Customer email is required';
         console.error('Validation error:', errorMsg);
         toast.error(errorMsg);
       }
-      
+
       if (!orderData.items || !Array.isArray(orderData.items) || orderData.items.length === 0) {
         const errorMsg = 'Order must contain at least one item';
         console.error('Validation error:', errorMsg);
         toast.error(errorMsg);
         throw new Error(errorMsg);
       }
-      
+
       if (!orderData.total_amount || orderData.total_amount <= 0) {
         const errorMsg = 'Valid order total is required';
         console.error('Validation error:', errorMsg);
@@ -77,18 +77,25 @@ export const useSupabaseOrders = () => {
         .in('id', productIds);
 
       if (productsError) {
-        console.error('Error fetching product vendors:', productsError);
+        console.error('❌ Error fetching product vendors:', productsError);
       }
 
+      // DIAGNOSTIC: Log products found for vendor_id mapping
+      console.log('🔍 Product IDs to lookup:', productIds);
+      console.log('📦 Products found with vendor_id:', products?.length || 0);
+      (products || []).forEach(p => {
+        console.log(`   - Product ${p.id}: vendor_id=${p.vendor_id || 'NULL'}`);
+      });
+
       // Create a map of product_id -> vendor_id (vendors.id)
-      const productVendorMap: Record<string, { vendor_id: string; image: string }> = {};
+      const productVendorMap: Record<string, { vendor_id: string | null; image: string }> = {};
       (products || []).forEach(p => {
         productVendorMap[p.id] = {
           vendor_id: p.vendor_id, // This is vendors.id, NOT user_id
           image: p.main_image || p.image_url || ''
         };
       });
-      
+
       // Ensure proper data structure for database insert
       const cleanOrderData = {
         order_number: orderData.order_number || `ORD-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -122,21 +129,21 @@ export const useSupabaseOrders = () => {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
-      
+
       console.log('Cleaned order data for database insert:', cleanOrderData);
-      
+
       const { data, error } = await supabase
         .from('orders')
         .insert([cleanOrderData])
         .select()
         .single();
-      
+
       if (error) {
         console.error('Supabase order insert error:', error);
         toast.error('Failed to create order: ' + error.message);
         throw error;
       }
-      
+
       if (!data) {
         const errorMsg = 'No data returned from order insert';
         console.error(errorMsg);
@@ -144,13 +151,13 @@ export const useSupabaseOrders = () => {
         throw new Error(errorMsg);
       }
 
-      // Create order_items for multi-vendor tracking
+      // Create order_items for ALL items (vendor tracking + order history)
       const orderItems = orderData.items.map(item => {
         const productInfo = productVendorMap[item.productId] || { vendor_id: null, image: '' };
         return {
           order_id: data.id,
           product_id: item.productId,
-          vendor_id: productInfo.vendor_id,
+          vendor_id: productInfo.vendor_id, // Can be null for non-vendor products
           product_name: item.productName,
           product_image: item.imageUrl || productInfo.image || '',
           quantity: parseInt(item.quantity) || 1,
@@ -160,55 +167,64 @@ export const useSupabaseOrders = () => {
           color: item.color !== '-' ? item.color : null,
           status: 'pending'
         };
-      }).filter(item => item.vendor_id); // Only create items with valid vendor_id
+      }); // REMOVED: .filter(item => item.vendor_id) - was blocking all items
+
+      // DIAGNOSTIC: Log order items to be inserted
+      console.log(`📝 Order items to insert: ${orderItems.length} of ${orderData.items.length} cart items`);
+      orderItems.forEach(item => {
+        console.log(`   - ${item.product_name}: vendor_id=${item.vendor_id || 'NULL'}`);
+      });
 
       if (orderItems.length > 0) {
-        console.log('Creating order_items for multi-vendor tracking:', orderItems);
+        console.log('💾 Inserting order_items into database...');
         const { error: itemsError } = await supabase
           .from('order_items')
           .insert(orderItems);
 
         if (itemsError) {
-          console.error('Error creating order_items:', itemsError);
-          // Don't fail the order, just log the error
+          console.error('❌ Error creating order_items:', itemsError);
+          console.error('   Error details:', JSON.stringify(itemsError));
+          // Still continue - order was created successfully
         } else {
           console.log('✅ Order items created successfully for vendor tracking');
         }
+      } else {
+        console.warn('⚠️ No order_items to insert - all items failed mapping');
+      }
 
-        // Decrement stock for each item
-        for (const item of orderData.items) {
-          const color = item.color && item.color !== '-' ? item.color : null;
-          const size = item.size && item.size !== '-' ? item.size : null;
-          
-          if (color && size) {
-            try {
-              const { error: stockError } = await supabase.rpc('decrement_product_stock', {
-                p_product_id: item.productId,
-                p_color: color,
-                p_size: size,
-                p_quantity: parseInt(item.quantity) || 1
-              });
+      // Decrement stock for each item
+      for (const item of orderData.items) {
+        const color = item.color && item.color !== '-' ? item.color : null;
+        const size = item.size && item.size !== '-' ? item.size : null;
 
-              if (stockError) {
-                console.warn('Stock decrement warning for product:', item.productId, stockError.message);
-                // Continue with order even if stock decrement fails
-              } else {
-                console.log('✅ Stock decremented for:', item.productName, color, size);
-              }
-            } catch (stockErr) {
-              console.warn('Stock decrement error:', stockErr);
+        if (color && size) {
+          try {
+            const { error: stockError } = await supabase.rpc('decrement_product_stock', {
+              p_product_id: item.productId,
+              p_color: color,
+              p_size: size,
+              p_quantity: parseInt(item.quantity) || 1
+            });
+
+            if (stockError) {
+              console.warn('Stock decrement warning for product:', item.productId, stockError.message);
+              // Continue with order even if stock decrement fails
+            } else {
+              console.log('✅ Stock decremented for:', item.productName, color, size);
             }
+          } catch (stockErr) {
+            console.warn('Stock decrement error:', stockErr);
           }
         }
       }
-      
+
       console.log('Order successfully created in database:', data);
       toast.success('Order created successfully!');
-      
+
       // Refresh orders from database
       await fetchOrders();
       return data;
-      
+
     } catch (error) {
       console.error('Exception in addOrder:', error);
       throw error;
@@ -218,59 +234,59 @@ export const useSupabaseOrders = () => {
   const updateOrder = async (id, updates) => {
     try {
       console.log('Updating order in database:', id, updates);
-      
+
       if (!id) {
         const errorMsg = 'Order ID is required for update';
         console.error(errorMsg);
         toast.error(errorMsg);
         throw new Error(errorMsg);
       }
-      
+
       const cleanUpdates = {
         ...updates,
         updated_at: new Date().toISOString()
       };
-      
+
       console.log('Cleaned order updates:', cleanUpdates);
-      
+
       const { data, error } = await supabase
         .from('orders')
         .update(cleanUpdates)
         .eq('id', id)
         .select()
         .single();
-      
+
       if (error) {
         console.error('Supabase order update error:', error);
         toast.error('Failed to update order: ' + error.message);
         throw error;
       }
-      
+
       if (!data) {
         const errorMsg = 'No data returned from order update';
         console.error(errorMsg);
         toast.error(errorMsg);
         throw new Error(errorMsg);
       }
-      
+
       console.log('Order successfully updated in database:', data);
       toast.success('Order updated successfully');
-      
+
       // Refresh orders from database
       await fetchOrders();
       return data;
-      
+
     } catch (error) {
       console.error('Exception in updateOrder:', error);
       throw error;
     }
   };
 
-  return { 
-    orders, 
-    loading, 
-    addOrder, 
-    updateOrder, 
-    refetch: fetchOrders 
+  return {
+    orders,
+    loading,
+    addOrder,
+    updateOrder,
+    refetch: fetchOrders
   };
 };

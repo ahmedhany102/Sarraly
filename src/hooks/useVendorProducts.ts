@@ -41,7 +41,7 @@ export const useVendorProducts = (statusFilter?: string) => {
 
     try {
       setLoading(true);
-      
+
       // Use RPC to get vendor products with proper filtering
       const { data, error } = await supabase.rpc('get_vendor_products', {
         _vendor_id: null, // null means current user's products (handled by RPC)
@@ -112,18 +112,19 @@ export const useVendorProducts = (statusFilter?: string) => {
       }
 
       const cleanData = cleanProductDataForInsert(productData, user.id);
-      
+
       // The category field from HierarchicalCategorySelector is already a UUID (the child category ID)
       // We use it directly as category_id - no name lookup needed
       const categoryId = cleanData.category || null;
-      
-      // Set initial status to 'pending' for vendor products - requires admin approval
-      const dataWithVendor = { 
-        ...cleanData, 
+
+      const dataWithVendor = {
+        ...cleanData,
         status: 'pending',
         vendor_id: vendorData.id,
         category_id: categoryId, // Use category directly as it's already the child category UUID
-        is_best_seller: (productData as any).is_best_seller || false
+        is_best_seller: (productData as any).is_best_seller || false,
+        is_free_shipping: (productData as any).is_free_shipping || false,
+        is_fast_shipping: (productData as any).is_fast_shipping || false
       };
 
       const { data, error } = await supabase
@@ -184,7 +185,9 @@ export const useVendorProducts = (statusFilter?: string) => {
       if (updates.stock !== undefined) cleanUpdates.stock = Number(updates.stock);
       if (updates.inventory !== undefined) cleanUpdates.inventory = Number(updates.inventory);
       if ((updates as any).is_best_seller !== undefined) cleanUpdates.is_best_seller = (updates as any).is_best_seller;
-      
+      if ((updates as any).is_free_shipping !== undefined) cleanUpdates.is_free_shipping = (updates as any).is_free_shipping;
+      if ((updates as any).is_fast_shipping !== undefined) cleanUpdates.is_fast_shipping = (updates as any).is_fast_shipping;
+
       cleanUpdates.updated_at = new Date().toISOString();
 
       const { error } = await supabase
@@ -274,7 +277,7 @@ export const useAdminProducts = (vendorFilter?: string, statusFilter?: string) =
 
     try {
       setLoading(true);
-      
+
       const { data, error } = await supabase.rpc('get_vendor_products', {
         _vendor_id: vendorFilter || null,
         _status_filter: statusFilter || 'all'

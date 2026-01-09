@@ -13,6 +13,7 @@ import { VendorProduct } from '@/hooks/useVendorProducts';
 import { ProductVariantService, ProductVariant } from '@/services/productVariantService';
 import { useCategories } from '@/hooks/useCategories';
 import { toast } from 'sonner';
+import { Truck, Zap } from 'lucide-react';
 
 interface VendorProductFormProps {
   initialData?: VendorProduct | null;
@@ -40,7 +41,7 @@ export const VendorProductForm: React.FC<VendorProductFormProps> = ({
   loading = false,
 }) => {
   const { categories } = useCategories();
-  
+
   // Find parent category for initial data
   const findParentCategoryId = (categoryId: string | null | undefined): string | null => {
     if (!categoryId) return null;
@@ -53,8 +54,8 @@ export const VendorProductForm: React.FC<VendorProductFormProps> = ({
 
   const [parentCategoryId, setParentCategoryId] = useState<string | null>(initialParentId);
   const [childCategoryId, setChildCategoryId] = useState<string | null>(initialCategoryId || null);
-  
-  const [formData, setFormData] = useState<ProductFormData & { is_best_seller?: boolean }>({
+
+  const [formData, setFormData] = useState<ProductFormData & { is_best_seller?: boolean; is_free_shipping?: boolean; is_fast_shipping?: boolean }>({
     name: initialData?.name || '',
     description: initialData?.description || '',
     price: initialData?.price || 0,
@@ -68,6 +69,8 @@ export const VendorProductForm: React.FC<VendorProductFormProps> = ({
     stock: initialData?.stock || initialData?.inventory || 0,
     inventory: initialData?.inventory || initialData?.stock || 0,
     is_best_seller: (initialData as any)?.is_best_seller || false,
+    is_free_shipping: (initialData as any)?.is_free_shipping || false,
+    is_fast_shipping: (initialData as any)?.is_fast_shipping || false,
   });
 
   const [colorVariants, setColorVariants] = useState<ColorVariant[]>([]);
@@ -90,12 +93,12 @@ export const VendorProductForm: React.FC<VendorProductFormProps> = ({
 
   const handleVariantsChange = (variants: ColorVariant[]) => {
     setColorVariants(variants);
-    
+
     // Calculate total stock from variants
-    const totalStock = variants.reduce((sum, v) => 
+    const totalStock = variants.reduce((sum, v) =>
       sum + v.options.reduce((optSum, opt) => optSum + (opt.stock || 0), 0), 0
     );
-    
+
     if (variants.length > 0 && totalStock > 0) {
       handleChange('stock', totalStock);
       handleChange('inventory', totalStock);
@@ -104,7 +107,7 @@ export const VendorProductForm: React.FC<VendorProductFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate variants if they exist
     if (colorVariants.length > 0) {
       const invalidVariants = colorVariants.filter(v => !v.color.trim() || !v.image);
@@ -112,7 +115,7 @@ export const VendorProductForm: React.FC<VendorProductFormProps> = ({
         toast.error('يرجى إدخال اسم اللون والصورة لكل لون');
         return;
       }
-      
+
       const variantsWithoutOptions = colorVariants.filter(v => v.options.length === 0);
       if (variantsWithoutOptions.length > 0) {
         toast.error('يرجى إضافة مقاس واحد على الأقل لكل لون');
@@ -123,7 +126,7 @@ export const VendorProductForm: React.FC<VendorProductFormProps> = ({
     try {
       // Submit the main product data
       await onSubmit(formData);
-      
+
       // Note: Variants will be saved after product creation in the parent component
       // The parent should call saveVariants with the new product ID
     } catch (error) {
@@ -141,7 +144,7 @@ export const VendorProductForm: React.FC<VendorProductFormProps> = ({
           <TabsTrigger value="basic">المعلومات الأساسية</TabsTrigger>
           <TabsTrigger value="variants">الألوان والمقاسات</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="basic" className="space-y-6 mt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -229,6 +232,30 @@ export const VendorProductForm: React.FC<VendorProductFormProps> = ({
             <Label htmlFor="featured">Featured Product</Label>
           </div>
 
+          <div className="flex items-center gap-2">
+            <Switch
+              id="is_free_shipping"
+              checked={formData.is_free_shipping}
+              onCheckedChange={(checked) => handleChange('is_free_shipping' as keyof ProductFormData, checked)}
+            />
+            <Label htmlFor="is_free_shipping" className="flex items-center gap-1">
+              <Truck className="w-4 h-4" />
+              شحن مجاني
+            </Label>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Switch
+              id="is_fast_shipping"
+              checked={formData.is_fast_shipping}
+              onCheckedChange={(checked) => handleChange('is_fast_shipping' as keyof ProductFormData, checked)}
+            />
+            <Label htmlFor="is_fast_shipping" className="flex items-center gap-1">
+              <Zap className="w-4 h-4" />
+              شحن سريع
+            </Label>
+          </div>
+
           <div className="space-y-2">
             <Label>صور المنتج الرئيسية</Label>
             <p className="text-xs text-muted-foreground mb-2">
@@ -248,7 +275,7 @@ export const VendorProductForm: React.FC<VendorProductFormProps> = ({
             />
           </div>
         </TabsContent>
-        
+
         <TabsContent value="variants" className="mt-4">
           <div className="bg-muted/50 p-4 rounded-lg mb-4">
             <h4 className="font-medium mb-2">إدارة المخزون بالألوان والمقاسات</h4>
@@ -257,17 +284,17 @@ export const VendorProductForm: React.FC<VendorProductFormProps> = ({
               سيتم حساب المخزون الإجمالي تلقائياً.
             </p>
           </div>
-          
+
           <ProductColorVariantManager
             variants={colorVariants}
             onChange={handleVariantsChange}
             productId={initialData?.id}
           />
-          
+
           {colorVariants.length > 0 && (
             <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
               <p className="text-sm font-medium text-green-800 dark:text-green-200">
-                إجمالي المخزون: {colorVariants.reduce((sum, v) => 
+                إجمالي المخزون: {colorVariants.reduce((sum, v) =>
                   sum + v.options.reduce((optSum, opt) => optSum + (opt.stock || 0), 0), 0
                 )} قطعة
               </p>
