@@ -119,7 +119,7 @@ export const useVendorProducts = (statusFilter?: string) => {
 
             const dataWithVendor = {
                 ...cleanData,
-                status: 'pending',
+                status: 'active', // Auto-publish: No admin approval required
                 vendor_id: vendorData.id,
                 category_id: categoryId, // Use category directly as it's already the child category UUID
                 is_best_seller: (productData as any).is_best_seller || false,
@@ -152,7 +152,7 @@ export const useVendorProducts = (statusFilter?: string) => {
             }
 
             toast.success('تم إضافة المنتج بنجاح', {
-                description: 'المنتج في انتظار موافقة الإدارة قبل النشر.'
+                description: 'المنتج متاح الآن في المتجر!'
             });
             await fetchProducts();
             return { id: data.id };

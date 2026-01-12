@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCategories } from '@/hooks/useCategories';
+import { useVendorContext } from '@/hooks/useVendorContext';
 
 interface CategoryGridProps {
   title?: string;
@@ -21,6 +22,9 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
+  // Get vendor context for vendor-scoped navigation
+  const { isVendorContext, vendorSlug } = useVendorContext();
+
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
       const scrollAmount = 200;
@@ -35,7 +39,12 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({
     if (onCategorySelect) {
       onCategorySelect(category.id);
     } else if (category.slug && category.slug !== 'all') {
-      navigate(`/category/${category.slug}`);
+      // Navigate within vendor store if in vendor context
+      if (isVendorContext && vendorSlug) {
+        navigate(`/store/${vendorSlug}/category/${category.id}`);
+      } else {
+        navigate(`/category/${category.slug}`);
+      }
     }
   };
 
@@ -100,7 +109,7 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({
                 <Package className="w-8 h-8 text-primary/60" />
               )}
             </div>
-            
+
             {/* Category Name */}
             <span className="text-xs md:text-sm font-medium text-center max-w-[80px] md:max-w-[96px] truncate group-hover:text-primary transition-colors">
               {category.name}

@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import ProductGrid from '@/components/ProductGrid';
 import SearchBar from '@/components/SearchBar';
@@ -19,11 +19,21 @@ import VendorStoreHeader from '@/components/vendor/VendorStoreHeader';
 const CategoryPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { products: allProducts, loading: productsLoading } = useSupabaseProducts();
   const { categories, subcategories: getSubcategories, loading: categoriesLoading } = useCategories();
   const { cartItems, addToCart: addToCartDB, removeFromCart, updateQuantity, clearCart } = useCartIntegration();
   const [showCartDialog, setShowCartDialog] = useState(false);
-  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
+
+  // Read subcategory from URL query param or local state
+  const subFromUrl = searchParams.get('sub');
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(subFromUrl);
+
+  // Sync state with URL param changes
+  useEffect(() => {
+    setSelectedSubcategory(subFromUrl);
+  }, [subFromUrl]);
+
   const [vendorSearchQuery, setVendorSearchQuery] = useState('');
   const [vendorSelectedCategory, setVendorSelectedCategory] = useState<string | null>(null);
   const [vendorSelectedSubcategory, setVendorSelectedSubcategory] = useState<string | null>(null);

@@ -48,11 +48,11 @@ const UserOrders = () => {
   };
 
   // Filter orders by status
-  const activeOrders = orders.filter(order => 
+  const activeOrders = orders.filter(order =>
     ['PENDING', 'PROCESSING', 'SHIPPED'].includes(order.status?.toUpperCase())
   );
-  
-  const cancelledOrders = orders.filter(order => 
+
+  const cancelledOrders = orders.filter(order =>
     order.status?.toUpperCase() === 'CANCELLED'
   );
 
@@ -74,8 +74,8 @@ const UserOrders = () => {
               {canCancelOrder(order) && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       disabled={cancelling === order.id}
                       className="h-6 px-2 text-xs"
@@ -102,12 +102,12 @@ const UserOrders = () => {
               )}
             </div>
             <p className="text-lg font-semibold">
-              ${order.total_amount.toFixed(2)}
+              ${Number(order.total_amount ?? 0).toFixed(2)}
             </p>
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent>
         <div className="space-y-3">
           {/* Order Items */}
@@ -118,8 +118,8 @@ const UserOrders = () => {
                 <div key={index} className="flex justify-between items-center text-sm">
                   <div className="flex items-center space-x-3">
                     {item.imageUrl && (
-                      <img 
-                        src={item.imageUrl} 
+                      <img
+                        src={item.imageUrl}
                         alt={item.productName}
                         className="w-10 h-10 object-cover rounded"
                       />
@@ -136,7 +136,7 @@ const UserOrders = () => {
                   </div>
                   <div className="text-right">
                     <p>Qty: {item.quantity}</p>
-                    <p className="font-medium">${item.totalPrice.toFixed(2)}</p>
+                    <p className="font-medium">${Number(item.totalPrice ?? 0).toFixed(2)}</p>
                   </div>
                 </div>
               ))}
@@ -168,7 +168,7 @@ const UserOrders = () => {
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold text-gray-900">My Orders</h2>
-      
+
       <Tabs defaultValue="active" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="active" className="flex items-center gap-2">
@@ -180,7 +180,7 @@ const UserOrders = () => {
             Cancelled Orders ({cancelledOrders.length})
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="active" className="space-y-4">
           {activeOrders.length === 0 ? (
             <div className="text-center py-8">
@@ -191,7 +191,7 @@ const UserOrders = () => {
             activeOrders.map(renderOrderCard)
           )}
         </TabsContent>
-        
+
         <TabsContent value="cancelled" className="space-y-4">
           {cancelledOrders.length === 0 ? (
             <div className="text-center py-8">

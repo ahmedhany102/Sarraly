@@ -75,6 +75,7 @@ export const VendorProductForm: React.FC<VendorProductFormProps> = ({
 
   const [colorVariants, setColorVariants] = useState<ColorVariant[]>([]);
   const [savingVariants, setSavingVariants] = useState(false);
+  const [hasSizes, setHasSizes] = useState(true); // Toggle for products with/without sizes
 
   // Load existing variants if editing
   useEffect(() => {
@@ -285,10 +286,30 @@ export const VendorProductForm: React.FC<VendorProductFormProps> = ({
             </p>
           </div>
 
+          {/* Toggle for products with/without sizes */}
+          <div className="flex items-center gap-3 mb-4 p-3 border rounded-lg bg-blue-50 dark:bg-blue-900/20">
+            <Switch
+              id="hasSizes"
+              checked={hasSizes}
+              onCheckedChange={setHasSizes}
+            />
+            <div>
+              <Label htmlFor="hasSizes" className="font-medium">
+                هذا المنتج له مقاسات متعددة
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                {hasSizes
+                  ? 'سيتم إظهار حقل المقاس (ملابس، أحذية...)'
+                  : 'لن يظهر حقل المقاس (إلكترونيات، إكسسوارات...)'}
+              </p>
+            </div>
+          </div>
+
           <ProductColorVariantManager
             variants={colorVariants}
             onChange={handleVariantsChange}
             productId={initialData?.id}
+            hasSizes={hasSizes}
           />
 
           {colorVariants.length > 0 && (

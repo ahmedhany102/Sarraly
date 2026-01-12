@@ -27,12 +27,14 @@ interface ProductColorVariantManagerProps {
   variants: ColorVariant[];
   onChange: (variants: ColorVariant[]) => void;
   productId?: string;
+  hasSizes?: boolean; // If false, hide size input and use 'N/A' as default
 }
 
 const ProductColorVariantManager: React.FC<ProductColorVariantManagerProps> = ({
   variants,
   onChange,
-  productId
+  productId,
+  hasSizes = true // Default to showing sizes
 }) => {
   const [localVariants, setLocalVariants] = useState<ColorVariant[]>(variants);
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
@@ -51,7 +53,7 @@ const ProductColorVariantManager: React.FC<ProductColorVariantManagerProps> = ({
   const handleOptionChange = (variantIndex: number, optionIndex: number, field: keyof ColorVariantOption, value: any) => {
     const updatedVariants = [...localVariants];
     const updatedOptions = [...updatedVariants[variantIndex].options];
-    
+
     // Handle type conversion for numeric fields
     let convertedValue = value;
     if (field === 'price') {
@@ -59,7 +61,7 @@ const ProductColorVariantManager: React.FC<ProductColorVariantManagerProps> = ({
     } else if (field === 'stock') {
       convertedValue = parseInt(value) || 0;
     }
-    
+
     updatedOptions[optionIndex] = { ...updatedOptions[optionIndex], [field]: convertedValue };
     updatedVariants[variantIndex] = { ...updatedVariants[variantIndex], options: updatedOptions };
     setLocalVariants(updatedVariants);
@@ -85,7 +87,7 @@ const ProductColorVariantManager: React.FC<ProductColorVariantManagerProps> = ({
 
   const addOption = (variantIndex: number) => {
     const newOption: ColorVariantOption = {
-      size: '',
+      size: hasSizes ? '' : 'N/A', // Use 'N/A' when sizes are disabled
       price: 0,
       stock: 0
     };
@@ -240,22 +242,24 @@ const ProductColorVariantManager: React.FC<ProductColorVariantManagerProps> = ({
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <div className="grid grid-cols-5 gap-2 text-xs font-medium text-gray-600 bg-gray-50 p-2 rounded">
-                      <div>المقاس</div>
+                    <div className={`grid gap-2 text-xs font-medium text-gray-600 bg-gray-50 p-2 rounded ${hasSizes ? 'grid-cols-5' : 'grid-cols-4'}`}>
+                      {hasSizes && <div>المقاس</div>}
                       <div>السعر</div>
                       <div>الكمية</div>
                       <div>الحالة</div>
                       <div>إجراء</div>
                     </div>
                     {variant.options.map((option, optionIndex) => (
-                      <div key={optionIndex} className="grid grid-cols-5 gap-2 items-center p-2 border rounded">
-                        <Input
-                          value={option.size}
-                          onChange={(e) => handleOptionChange(variantIndex, optionIndex, 'size', e.target.value)}
-                          placeholder="S, M, L"
-                          className="text-sm"
-                          required
-                        />
+                      <div key={optionIndex} className={`grid gap-2 items-center p-2 border rounded ${hasSizes ? 'grid-cols-5' : 'grid-cols-4'}`}>
+                        {hasSizes && (
+                          <Input
+                            value={option.size}
+                            onChange={(e) => handleOptionChange(variantIndex, optionIndex, 'size', e.target.value)}
+                            placeholder="S, M, L"
+                            className="text-sm"
+                            required
+                          />
+                        )}
                         <Input
                           type="number"
                           value={option.price.toString()}

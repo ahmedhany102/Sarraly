@@ -143,7 +143,7 @@ const RecommendationCarousel: React.FC<RecommendationCarouselProps> = ({
       {/* Carousel */}
       <div
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide scroll-smooth"
+        className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide scroll-smooth items-stretch"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {products.map((product) => {
@@ -155,7 +155,7 @@ const RecommendationCarousel: React.FC<RecommendationCarouselProps> = ({
           return (
             <Card
               key={product.id}
-              className="min-w-[180px] max-w-[180px] flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow group"
+              className="min-w-[180px] max-w-[180px] min-h-[320px] flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow group flex flex-col"
               onClick={() => handleProductClick(product.id)}
             >
               <CardHeader className="p-0 relative">
@@ -184,7 +184,7 @@ const RecommendationCarousel: React.FC<RecommendationCarouselProps> = ({
                 )}
               </CardHeader>
 
-              <CardContent className="p-3 pb-2">
+              <CardContent className="p-3 pb-2 flex-grow">
                 <h4 className="font-medium text-sm line-clamp-2 mb-1 group-hover:text-primary transition-colors">
                   {product.name}
                 </h4>
@@ -209,7 +209,7 @@ const RecommendationCarousel: React.FC<RecommendationCarouselProps> = ({
                 </div>
               </CardContent>
 
-              <CardFooter className="p-3 pt-0">
+              <CardFooter className="p-3 pt-0 mt-auto">
                 <Button
                   size="sm"
                   className="w-full"

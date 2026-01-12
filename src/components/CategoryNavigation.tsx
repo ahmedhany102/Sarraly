@@ -5,24 +5,33 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useNavigate } from 'react-router-dom';
 import { Package } from 'lucide-react';
+import { useVendorContext } from '@/hooks/useVendorContext';
 
 interface CategoryNavigationProps {
   onCategorySelect?: (categoryId: string) => void;
   selectedCategory?: string | null;
 }
 
-const CategoryNavigation: React.FC<CategoryNavigationProps> = ({ 
-  onCategorySelect, 
-  selectedCategory 
+const CategoryNavigation: React.FC<CategoryNavigationProps> = ({
+  onCategorySelect,
+  selectedCategory
 }) => {
   const { mainCategories, loading } = useCategories();
   const navigate = useNavigate();
+
+  // Get vendor context for vendor-scoped navigation
+  const { isVendorContext, vendorSlug } = useVendorContext();
 
   const handleCategoryClick = (category: any) => {
     if (onCategorySelect) {
       onCategorySelect(category.id);
     } else {
-      navigate(`/category/${category.slug}`);
+      // Navigate within vendor store if in vendor context
+      if (isVendorContext && vendorSlug) {
+        navigate(`/store/${vendorSlug}/category/${category.id}`);
+      } else {
+        navigate(`/category/${category.slug}`);
+      }
     }
   };
 
@@ -48,10 +57,9 @@ const CategoryNavigation: React.FC<CategoryNavigationProps> = ({
       <h3 className="text-lg font-semibold mb-4">تصفح حسب الفئة</h3>
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 md:gap-3">
         {/* All Products Option */}
-        <Card 
-          className={`cursor-pointer transition-all hover:shadow-sm hover:scale-[1.02] min-h-[84px] ${
-            !selectedCategory ? 'ring-1 ring-primary' : ''
-          }`}
+        <Card
+          className={`cursor-pointer transition-all hover:shadow-sm hover:scale-[1.02] min-h-[84px] ${!selectedCategory ? 'ring-1 ring-primary' : ''
+            }`}
           onClick={() => handleCategoryClick({ id: null, slug: 'all', name: 'جميع المنتجات' })}
         >
           <CardContent className="p-2 text-center">
@@ -64,18 +72,17 @@ const CategoryNavigation: React.FC<CategoryNavigationProps> = ({
 
         {/* Category Cards */}
         {mainCategories.map((category) => (
-          <Card 
+          <Card
             key={category.id}
-            className={`cursor-pointer transition-all hover:shadow-sm hover:scale-[1.02] min-h-[84px] ${
-              selectedCategory === category.id ? 'ring-1 ring-primary' : ''
-            }`}
+            className={`cursor-pointer transition-all hover:shadow-sm hover:scale-[1.02] min-h-[84px] ${selectedCategory === category.id ? 'ring-1 ring-primary' : ''
+              }`}
             onClick={() => handleCategoryClick(category)}
           >
             <CardContent className="p-2 text-center">
               <div className="w-8 h-8 mx-auto mb-1 bg-gradient-to-br from-primary/20 to-primary/10 rounded-md flex items-center justify-center overflow-hidden">
                 {category.image_url ? (
-                  <img 
-                    src={category.image_url} 
+                  <img
+                    src={category.image_url}
                     alt={category.name}
                     width="32"
                     height="32"

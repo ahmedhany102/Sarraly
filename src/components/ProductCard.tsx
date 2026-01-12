@@ -162,7 +162,7 @@ const ProductCard = ({ product, className = '', variants = [] }: ProductCardProp
 
   return (
     <Card
-      className={`group cursor-pointer transition-all duration-200 hover:shadow-lg hover:border-green-300 border-gray-200 ${className}`}
+      className={`group cursor-pointer transition-all duration-200 hover:shadow-lg hover:border-green-300 border-gray-200 flex flex-col h-full ${className}`}
       onClick={handleProductClick}
       style={{ minHeight: '380px' }}
     >
@@ -337,7 +337,7 @@ const ProductCard = ({ product, className = '', variants = [] }: ProductCardProp
         )}
       </CardContent>
 
-      <CardFooter className="p-3 pt-0">
+      <CardFooter className="p-3 pt-0 mt-auto">
         <Button
           onClick={handleQuickAddToCart}
           disabled={isOutOfStock}
