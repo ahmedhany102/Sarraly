@@ -29,7 +29,29 @@ const Index = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-6">
-        {/* Greeting Section */}
+        {/* Hero Section for Guest Users - Speed-focused branding */}
+        {!user && (
+          <div className="mb-8 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-2xl p-6 md:p-10 text-center md:text-right">
+            <h1 className="text-2xl md:text-4xl font-bold mb-3">
+              انطلق وابدأ البيع في <span className="text-primary">30 ثانية</span> فقط
+            </h1>
+            <p className="text-lg md:text-xl text-muted-foreground mb-2">
+              Launch and Sell in <span className="text-primary font-bold">30 Seconds</span>
+            </p>
+            <p className="text-muted-foreground mb-6">
+              مع سرعلي - أسرع طريقة لإنشاء متجرك الإلكتروني
+            </p>
+            <a
+              href="/become-vendor"
+              className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-bold transition-colors"
+            >
+              <Store className="w-5 h-5" />
+              ابدأ البيع الآن
+            </a>
+          </div>
+        )}
+
+        {/* Greeting Section for Logged-in Users */}
         {user && (
           <div className="mb-6">
             <h2 className="text-xl font-bold mb-2">أهلاً بك {user.name}!</h2>

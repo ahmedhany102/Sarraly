@@ -193,10 +193,10 @@ const ProductCard = ({ product, className = '', variants = [] }: ProductCardProp
           />
         </Button>
 
-        {/* Discount badge */}
-        {product.hasDiscount && product.discount && (
+        {/* Discount badge - show if discount exists and > 0 */}
+        {Number(product.discount || 0) > 0 && (
           <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold z-10">
-            -{product.discount}%
+            {product.discount}% خصم
           </div>
         )}
 

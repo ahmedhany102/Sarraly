@@ -43,7 +43,7 @@ const AppHeader = () => {
 
   return (
     <header className="w-full bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 border-b border-border shadow-sm">
-      <div className="container px-4 py-2 mx-auto">
+      <div className="container px-4 py-3 mx-auto">
         <div className="flex flex-col gap-2">
           <div className="flex justify-between items-center">
             {isAdminPage ? (
@@ -55,8 +55,12 @@ const AppHeader = () => {
                 <Store className="mr-2" /> Vendor Panel
               </Link>
             ) : (
-              <Link to="/" className="text-xl font-bold text-foreground">
-                W8
+              <Link to="/" className="flex items-center">
+                <img
+                  src="/logo.png"
+                  alt="Sarraly Logo"
+                  className="h-10 md:h-14 w-auto object-contain"
+                />
               </Link>
             )}
             <div className="flex items-center gap-2">

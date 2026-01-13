@@ -201,7 +201,7 @@ const VendorFooter: React.FC = () => {
                     <p className="text-sm text-muted-foreground">
                         Powered by{' '}
                         <Link to="/" className="font-bold text-primary hover:underline">
-                            W8
+                            سرعلي
                         </Link>
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
