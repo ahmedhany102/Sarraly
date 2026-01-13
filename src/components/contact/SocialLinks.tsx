@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Facebook, Instagram, Twitter, Youtube } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 
 interface SocialLinksProps {
   settings: any;
@@ -17,17 +18,18 @@ const SocialLinks: React.FC<SocialLinksProps> = ({ settings }) => {
   if (!hasSocialLinks) return null;
 
   return (
-    <div className="mt-8">
-      <h3 className="text-lg font-medium mb-4">Follow Us</h3>
-      <div className="flex space-x-4">
+    <Card className="mt-4 p-4 rounded-xl bg-muted/50">
+      <h3 className="text-lg font-bold mb-4 text-right">تابعنا</h3>
+      <div className="flex gap-3 justify-end flex-wrap">
         {facebook && (
           <a
             href={facebook}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition"
+            className="flex items-center justify-center w-11 h-11 bg-primary hover:bg-primary/80 text-white rounded-full transition-all shadow-md hover:shadow-lg"
+            title="Facebook"
           >
-            <Facebook size={24} />
+            <Facebook size={20} />
           </a>
         )}
         {instagram && (
@@ -35,9 +37,10 @@ const SocialLinks: React.FC<SocialLinksProps> = ({ settings }) => {
             href={instagram}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center w-12 h-12 bg-pink-600 hover:bg-pink-700 text-white rounded-full transition"
+            className="flex items-center justify-center w-11 h-11 bg-primary hover:bg-primary/80 text-white rounded-full transition-all shadow-md hover:shadow-lg"
+            title="Instagram"
           >
-            <Instagram size={24} />
+            <Instagram size={20} />
           </a>
         )}
         {twitter && (
@@ -45,9 +48,10 @@ const SocialLinks: React.FC<SocialLinksProps> = ({ settings }) => {
             href={twitter}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center w-12 h-12 bg-blue-400 hover:bg-blue-500 text-white rounded-full transition"
+            className="flex items-center justify-center w-11 h-11 bg-primary hover:bg-primary/80 text-white rounded-full transition-all shadow-md hover:shadow-lg"
+            title="Twitter"
           >
-            <Twitter size={24} />
+            <Twitter size={20} />
           </a>
         )}
         {youtube && (
@@ -55,13 +59,14 @@ const SocialLinks: React.FC<SocialLinksProps> = ({ settings }) => {
             href={youtube}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center w-12 h-12 bg-red-600 hover:bg-red-700 text-white rounded-full transition"
+            className="flex items-center justify-center w-11 h-11 bg-primary hover:bg-primary/80 text-white rounded-full transition-all shadow-md hover:shadow-lg"
+            title="YouTube"
           >
-            <Youtube size={24} />
+            <Youtube size={20} />
           </a>
         )}
       </div>
-    </div>
+    </Card>
   );
 };
 

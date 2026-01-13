@@ -65,7 +65,15 @@ export const useVendorProfile = () => {
     fetchProfile();
   }, [fetchProfile]);
 
-  const applyAsVendor = async (storeName: string, storeDescription?: string, phone?: string, address?: string) => {
+  const applyAsVendor = async (
+    storeName: string,
+    storeDescription?: string,
+    phone?: string,
+    address?: string,
+    salesChannelLink?: string,
+    hasPhysicalStore?: boolean,
+    registrationNotes?: string
+  ) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -111,7 +119,11 @@ export const useVendorProfile = () => {
           phone: phone || null,
           address: address || null,
           slug: slug,
-          status: 'pending'
+          status: 'pending',
+          // New business info fields - stored in metadata JSONB or separate columns
+          sales_channel_link: salesChannelLink || null,
+          has_physical_store: hasPhysicalStore || false,
+          registration_notes: registrationNotes || null
         })
         .select()
         .single();

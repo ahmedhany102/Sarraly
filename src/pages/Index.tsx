@@ -46,7 +46,7 @@ const Index = () => {
               className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-bold transition-colors"
             >
               <Store className="w-5 h-5" />
-              ابدأ البيع الآن
+              امتلك متجرك الإلكتروني الآن
             </a>
           </div>
         )}

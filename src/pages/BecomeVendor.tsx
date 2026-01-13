@@ -35,15 +35,18 @@ const BecomeVendor = () => {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-12">
-          <div className="max-w-2xl mx-auto text-center mb-8">
-            <Store className="w-16 h-16 mx-auto mb-4 text-primary" />
-            <h1 className="text-3xl font-bold mb-4">انضم كبائع</h1>
-            <p className="text-muted-foreground mb-6">
-              ابدأ رحلتك معنا وقم ببيع منتجاتك لآلاف العملاء. سجل حساب جديد أو قم بتسجيل الدخول للتقديم كبائع.
+          <div className="max-w-3xl mx-auto text-center mb-10">
+            <Store className="w-20 h-20 mx-auto mb-6 text-primary" />
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">
+              امتلك متجرك الخاص بمواصفات عالمية.. في لحظات
+            </h1>
+            <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
+              لا تضيع وقتك في البرمجة. احصل فوراً على لوحة تحكم شاملة لإدارة منتجاتك ومبيعاتك،
+              واعرض بضاعتك تلقائياً أمام آلاف الزوار في <span className="text-primary font-bold"> مول سرعلي الإلكتروني </span>
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" onClick={() => navigate('/signup?redirect=/become-vendor')}>
-                إنشاء حساب جديد
+              <Button size="lg" className="text-lg px-8" onClick={() => navigate('/signup?redirect=/become-vendor')}>
+                امتلك متجرك الآن
               </Button>
               <Button variant="outline" size="lg" onClick={() => navigate('/login?redirect=/become-vendor')}>
                 تسجيل الدخول
@@ -52,29 +55,56 @@ const BecomeVendor = () => {
           </div>
 
           {/* Benefits section for guests */}
-          <Card className="max-w-2xl mx-auto">
+          <Card className="max-w-3xl mx-auto">
             <CardHeader>
-              <CardTitle className="text-center">لماذا تنضم إلينا؟</CardTitle>
+              <CardTitle className="text-center text-2xl">لماذا سرعلي؟</CardTitle>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-3 text-right">
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span>الوصول إلى آلاف العملاء المحتملين</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span>لوحة تحكم سهلة لإدارة منتجاتك</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span>دعم فني متواصل</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span>عمولات تنافسية</span>
-                </li>
-              </ul>
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Feature 1 */}
+                <div className="flex items-start gap-4 p-4 rounded-lg bg-muted/50">
+                  <CheckCircle className="w-8 h-8 text-primary flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="font-bold text-lg mb-1">تحكم واسع وشامل</h3>
+                    <p className="text-muted-foreground text-sm">
+                      أدر مخزونك، حدد أسعارك، وتابع أرباحك بدقة من مكان واحد.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Feature 2 */}
+                <div className="flex items-start gap-4 p-4 rounded-lg bg-muted/50">
+                  <Clock className="w-8 h-8 text-primary flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="font-bold text-lg mb-1">انطلاقة في <span className="text-primary">30 ثانية</span></h3>
+                    <p className="text-muted-foreground text-sm">
+                      سجل حسابك وابدأ البيع فوراً، لا توجد تعقيدات تقنية.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Feature 3 */}
+                <div className="flex items-start gap-4 p-4 rounded-lg bg-muted/50">
+                  <Store className="w-8 h-8 text-primary flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="font-bold text-lg mb-1">توسع بلا حدود</h3>
+                    <p className="text-muted-foreground text-sm">
+                      منتجاتك تظهر فوراً في مول سرعلي العام، مما يضمن لك وصولاً أسرع للعملاء.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Feature 4 */}
+                <div className="flex items-start gap-4 p-4 rounded-lg bg-muted/50">
+                  <AlertCircle className="w-8 h-8 text-primary flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="font-bold text-lg mb-1">أدوات تسويقية ذكية</h3>
+                    <p className="text-muted-foreground text-sm">
+                      اصنع العروض والخصومات واجذب المشترين لمتجرك بسهولة.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -196,7 +226,7 @@ const BecomeVendor = () => {
     <Layout>
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-2xl mx-auto text-center mb-8">
-          <h1 className="text-3xl font-bold mb-4">انضم كبائع</h1>
+          <h1 className="text-3xl font-bold mb-4">سجل للحصول علي متجرك الالكتروني الخاص بك</h1>
           <p className="text-muted-foreground">
             ابدأ رحلتك معنا وقم ببيع منتجاتك لآلاف العملاء. تقدم بطلبك الآن وسيتم مراجعته من قبل فريقنا.
           </p>

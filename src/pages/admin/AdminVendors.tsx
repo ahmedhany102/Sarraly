@@ -175,7 +175,7 @@ const AdminVendors = () => {
             <DialogTitle>تفاصيل البائع</DialogTitle>
             <DialogDescription>معلومات المتجر والمالك</DialogDescription>
           </DialogHeader>
-          
+
           {selectedVendor && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -211,6 +211,44 @@ const AdminVendors = () => {
                 </div>
               )}
 
+              {/* New Business Info Section */}
+              <div className="border-t pt-4 space-y-3">
+                <p className="text-sm font-semibold text-muted-foreground">معلومات النشاط التجاري</p>
+
+                {/* Sales Channel Link */}
+                <div>
+                  <p className="text-muted-foreground text-sm">رابط صفحة المبيعات</p>
+                  {(selectedVendor as any).sales_channel_link ? (
+                    <a
+                      href={(selectedVendor as any).sales_channel_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline text-sm break-all"
+                    >
+                      {(selectedVendor as any).sales_channel_link}
+                    </a>
+                  ) : (
+                    <p className="text-sm">-</p>
+                  )}
+                </div>
+
+                {/* Physical Store Status */}
+                <div>
+                  <p className="text-muted-foreground text-sm">محل تجاري</p>
+                  <Badge variant={(selectedVendor as any).has_physical_store ? "default" : "secondary"}>
+                    {(selectedVendor as any).has_physical_store ? '✓ يمتلك محل' : '💻 أونلاين فقط'}
+                  </Badge>
+                </div>
+
+                {/* Registration Notes */}
+                {(selectedVendor as any).registration_notes && (
+                  <div>
+                    <p className="text-muted-foreground text-sm">ملاحظات من البائع</p>
+                    <p className="text-sm mt-1 bg-muted p-2 rounded">{(selectedVendor as any).registration_notes}</p>
+                  </div>
+                )}
+              </div>
+
               <div className="text-xs text-muted-foreground">
                 تاريخ التقديم: {format(new Date(selectedVendor.created_at), 'dd MMMM yyyy - HH:mm', { locale: ar })}
               </div>
@@ -219,7 +257,7 @@ const AdminVendors = () => {
 
           <DialogFooter className="gap-2">
             {selectedVendor && selectedVendor.status !== 'approved' && (
-              <Button 
+              <Button
                 onClick={() => handleStatusChange(selectedVendor.id, 'approved')}
                 disabled={actionLoading}
               >
@@ -228,7 +266,7 @@ const AdminVendors = () => {
               </Button>
             )}
             {selectedVendor && selectedVendor.status === 'pending' && (
-              <Button 
+              <Button
                 variant="destructive"
                 onClick={() => handleStatusChange(selectedVendor.id, 'rejected')}
                 disabled={actionLoading}
@@ -238,7 +276,7 @@ const AdminVendors = () => {
               </Button>
             )}
             {selectedVendor && selectedVendor.status === 'approved' && (
-              <Button 
+              <Button
                 variant="destructive"
                 onClick={() => handleStatusChange(selectedVendor.id, 'suspended')}
                 disabled={actionLoading}

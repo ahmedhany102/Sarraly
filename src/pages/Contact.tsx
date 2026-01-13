@@ -39,20 +39,20 @@ const Contact = () => {
         timestamp: new Date().toISOString(),
         read: false
       };
-      
+
       // Get existing messages or create empty array
       let existingMessages = [];
       const storedMessages = localStorage.getItem('contactMessages');
       if (storedMessages) {
         existingMessages = JSON.parse(storedMessages);
       }
-      
+
       // Add new message to beginning of array
       existingMessages.unshift(newMessage);
-      
+
       // Save back to localStorage
       localStorage.setItem('contactMessages', JSON.stringify(existingMessages));
-      
+
       // Show success toast and reset form
       toast.success("تم إرسال رسالتك بنجاح! سوف نتواصل معك قريباً");
       setForm({ name: '', email: '', subject: '', message: '' });
@@ -66,9 +66,13 @@ const Contact = () => {
 
   return (
     <Layout>
-      <div className="py-8">
-        <h1 className="text-3xl font-bold text-center mb-8">Contact Us</h1>
-        
+      <div className="container mx-auto px-4 py-8">
+        {/* Page Header */}
+        <div className="text-center mb-10">
+          <h1 className="text-3xl md:text-4xl font-bold mb-3">تواصل معنا</h1>
+          <p className="text-muted-foreground text-lg">نسعد بتواصلكم معنا في أي وقت</p>
+        </div>
+
         {settingsLoading ? (
           <div className="text-center py-8">Loading...</div>
         ) : (
@@ -83,7 +87,7 @@ const Contact = () => {
                   onSubmit={handleSubmit}
                 />
               </div>
-              
+
               {/* Contact Information */}
               <div>
                 <ContactInfo settings={settings} />
@@ -91,7 +95,7 @@ const Contact = () => {
                 <SocialLinks settings={settings} />
               </div>
             </div>
-            
+
             <MapSection settings={settings} />
           </>
         )}

@@ -23,6 +23,9 @@ import BecomeVendor from './pages/BecomeVendor';
 import Vendors from './pages/Vendors';
 import SectionPage from './pages/SectionPage';
 import SimilarProductsPage from './pages/SimilarProductsPage';
+import ShippingPolicy from './pages/Policies/ShippingPolicy';
+import ReturnPolicy from './pages/Policies/ReturnPolicy';
+import FAQ from './pages/FAQ';
 
 // Vendor context and layout
 import { VendorContextProvider } from './contexts/VendorContext';
@@ -66,6 +69,11 @@ function App() {
               <Route path="/vendors" element={<Vendors />} />
               <Route path="/section/:id" element={<SectionPage />} />
               <Route path="/recommendations/similar" element={<SimilarProductsPage />} />
+
+              {/* Policy & FAQ Pages */}
+              <Route path="/policy/shipping" element={<ShippingPolicy />} />
+              <Route path="/policy/returns" element={<ReturnPolicy />} />
+              <Route path="/faq" element={<FAQ />} />
 
               {/* Vendor Storefront Routes - Wrapped in VendorContextProvider */}
               <Route
