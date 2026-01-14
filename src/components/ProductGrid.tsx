@@ -13,11 +13,11 @@ interface ProductGridProps {
   variantsByProduct?: Record<string, ProductVariant[]>;
 }
 
-const ProductGrid: React.FC<ProductGridProps> = ({ 
-  products, 
-  loading, 
-  searchQuery, 
-  onAddToCart, 
+const ProductGrid: React.FC<ProductGridProps> = ({
+  products,
+  loading,
+  searchQuery,
+  onAddToCart,
   onClearSearch,
   variantsByProduct = {}
 }) => {
@@ -42,9 +42,9 @@ const ProductGrid: React.FC<ProductGridProps> = ({
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <p className="text-xl text-gray-500 mb-4">No products found</p>
-        <Button 
+        <Button
           onClick={onClearSearch}
-          className="bg-green-800 hover:bg-green-900 interactive-button"
+          className="bg-primary hover:bg-primary/90 interactive-button"
         >
           Clear Search
         </Button>
@@ -55,9 +55,9 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   return (
     <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
       {products.filter(product => product).map((product) => (
-        <ProductCard 
-          key={product.id} 
-          product={product} 
+        <ProductCard
+          key={product.id}
+          product={product}
           onAddToCart={onAddToCart}
           variants={variantsByProduct[product.id] || []}
         />

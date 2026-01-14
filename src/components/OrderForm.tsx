@@ -64,27 +64,27 @@ const OrderForm: React.FC<OrderFormProps> = ({ cartItems, total, onOrderComplete
         toast.error('Full name is required');
         return;
       }
-      
+
       if (!formData.email?.trim()) {
         toast.error('Email is required');
         return;
       }
-      
+
       if (!formData.phone?.trim()) {
         toast.error('Phone number is required');
         return;
       }
-      
+
       if (!formData.street?.trim()) {
         toast.error('Street address is required');
         return;
       }
-      
+
       if (!formData.city?.trim()) {
         toast.error('City is required');
         return;
       }
-      
+
       if (!formData.zipCode?.trim()) {
         toast.error('Zip code is required');
         return;
@@ -125,13 +125,13 @@ const OrderForm: React.FC<OrderFormProps> = ({ cartItems, total, onOrderComplete
       if (appliedCoupon) {
         console.log('🎟️ Attempting to claim coupon:', appliedCoupon.code);
         const claimedCoupon = await claimCoupon(appliedCoupon.code);
-        
+
         if (!claimedCoupon) {
           toast.error('كود الخصم غير صالح أو انتهت صلاحيته. الرجاء إزالته والمحاولة مرة أخرى.');
           setIsSubmitting(false);
           return;
         }
-        
+
         claimedCouponId = claimedCoupon.id;
         console.log('✅ Coupon claimed successfully:', claimedCouponId);
       }
@@ -174,12 +174,12 @@ const OrderForm: React.FC<OrderFormProps> = ({ cartItems, total, onOrderComplete
 
       // Save order to database
       const createdOrder = await addOrder(orderData);
-      
+
       // Record coupon redemption if applicable
       if (appliedCoupon && claimedCouponId) {
         await ApplyCouponService.recordRedemption(claimedCouponId, createdOrder.id);
       }
-      
+
       console.log('Order successfully created and saved:', createdOrder);
 
       // Show success message
@@ -301,7 +301,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ cartItems, total, onOrderComplete
 
       <Button
         type="submit"
-        className="w-full bg-green-800 hover:bg-green-900"
+        className="w-full bg-primary hover:bg-primary/90"
         disabled={isSubmitting}
       >
         {isSubmitting ? 'Processing Order...' : 'Complete Order'}

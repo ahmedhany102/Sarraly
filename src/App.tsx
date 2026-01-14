@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { RequireAuth } from './components/RequireAuth';
 import { RequireVendorAuth } from './components/RequireVendorAuth';
 
@@ -55,82 +55,93 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Router>
         <AuthProvider>
-          <div className="flex flex-col min-h-screen w-full">
-            <Routes>
-              {/* Global (W8 Mall) Routes */}
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/admin-login" element={<AdminLogin />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/category/:slug" element={<CategoryPage />} />
-              <Route path="/product/:id" element={<ProductDetails />} />
-              <Route path="/vendors" element={<Vendors />} />
-              <Route path="/section/:id" element={<SectionPage />} />
-              <Route path="/recommendations/similar" element={<SimilarProductsPage />} />
-
-              {/* Policy & FAQ Pages */}
-              <Route path="/policy/shipping" element={<ShippingPolicy />} />
-              <Route path="/policy/returns" element={<ReturnPolicy />} />
-              <Route path="/faq" element={<FAQ />} />
-
-              {/* Vendor Storefront Routes - Wrapped in VendorContextProvider */}
-              <Route
-                path="/store/:vendorSlug/*"
-                element={
-                  <VendorContextProvider>
-                    <VendorLayout />
-                  </VendorContextProvider>
-                }
-              />
-
-              {/* Protected routes */}
-              <Route element={<RequireAuth adminOnly={false} />}>
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/order-tracking" element={<OrderTracking />} />
-                <Route path="/orders" element={<OrderTracking />} />
-                <Route path="/favorites" element={<Favorites />} />
-                <Route path="/checkout" element={<Cart />} />
-              </Route>
-
-              {/* Become Vendor is PUBLIC - auth handled inside if needed */}
-              <Route path="/become-vendor" element={<BecomeVendor />} />
-
-              {/* Cart is PUBLIC - checkout auth is handled inside Cart.tsx */}
-              <Route path="/cart" element={<Cart />} />
-
-              {/* Vendor routes */}
-              <Route element={<RequireVendorAuth />}>
-                <Route path="/vendor" element={<VendorDashboard />} />
-                <Route path="/vendor/products" element={<VendorDashboard />} />
-                <Route path="/vendor/orders" element={<VendorDashboard />} />
-                <Route path="/vendor/analytics" element={<VendorDashboard />} />
-                <Route path="/vendor/settings" element={<VendorDashboard />} />
-              </Route>
-
-              {/* Admin routes */}
-              <Route element={<RequireAuth adminOnly={true} />}>
-                <Route path="/admin" element={<Admin />} />
-                <Route path="/admin/products" element={<Admin activeTab="products" />} />
-                <Route path="/admin/orders" element={<Admin activeTab="orders" />} />
-                <Route path="/admin/users" element={<Admin activeTab="users" />} />
-                <Route path="/admin/coupons" element={<Admin activeTab="coupons" />} />
-                <Route path="/admin/contact" element={<Admin activeTab="contact" />} />
-                <Route path="/admin/ads" element={<Admin activeTab="ads" />} />
-                <Route path="/admin/vendors" element={<Admin activeTab="vendors" />} />
-              </Route>
-
-              {/* 404 */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </div>
-          <BottomNavigation />
-          <SonnerToaster position="top-right" richColors closeButton />
-          <Toaster />
+          <AppContent />
         </AuthProvider>
       </Router>
     </QueryClientProvider>
+  );
+}
+
+function AppContent() {
+  const location = useLocation();
+  const isAuthPage = ['/login', '/signup', '/become-vendor', '/admin-login'].includes(location.pathname);
+
+  return (
+    <>
+      <div className="flex flex-col min-h-screen w-full">
+        <Routes>
+          {/* Global (W8 Mall) Routes */}
+          <Route path="/" element={<Index />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/category/:slug" element={<CategoryPage />} />
+          <Route path="/product/:id" element={<ProductDetails />} />
+          <Route path="/vendors" element={<Vendors />} />
+          <Route path="/section/:id" element={<SectionPage />} />
+          <Route path="/recommendations/similar" element={<SimilarProductsPage />} />
+
+          {/* Policy & FAQ Pages */}
+          <Route path="/policy/shipping" element={<ShippingPolicy />} />
+          <Route path="/policy/returns" element={<ReturnPolicy />} />
+          <Route path="/faq" element={<FAQ />} />
+
+          {/* Vendor Storefront Routes - Wrapped in VendorContextProvider */}
+          <Route
+            path="/store/:vendorSlug/*"
+            element={
+              <VendorContextProvider>
+                <VendorLayout />
+              </VendorContextProvider>
+            }
+          />
+
+          {/* Protected routes */}
+          <Route element={<RequireAuth adminOnly={false} />}>
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/order-tracking" element={<OrderTracking />} />
+            <Route path="/orders" element={<OrderTracking />} />
+            <Route path="/favorites" element={<Favorites />} />
+            <Route path="/checkout" element={<Cart />} />
+          </Route>
+
+          {/* Become Vendor is PUBLIC - auth handled inside if needed */}
+          <Route path="/become-vendor" element={<BecomeVendor />} />
+
+          {/* Cart is PUBLIC - checkout auth is handled inside Cart.tsx */}
+          <Route path="/cart" element={<Cart />} />
+
+          {/* Vendor routes */}
+          <Route element={<RequireVendorAuth />}>
+            <Route path="/vendor" element={<VendorDashboard />} />
+            <Route path="/vendor/products" element={<VendorDashboard />} />
+            <Route path="/vendor/orders" element={<VendorDashboard />} />
+            <Route path="/vendor/analytics" element={<VendorDashboard />} />
+            <Route path="/vendor/settings" element={<VendorDashboard />} />
+          </Route>
+
+          {/* Admin routes */}
+          <Route element={<RequireAuth adminOnly={true} />}>
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/admin/products" element={<Admin activeTab="products" />} />
+            <Route path="/admin/orders" element={<Admin activeTab="orders" />} />
+            <Route path="/admin/users" element={<Admin activeTab="users" />} />
+            <Route path="/admin/coupons" element={<Admin activeTab="coupons" />} />
+            <Route path="/admin/contact" element={<Admin activeTab="contact" />} />
+            <Route path="/admin/ads" element={<Admin activeTab="ads" />} />
+            <Route path="/admin/vendors" element={<Admin activeTab="vendors" />} />
+          </Route>
+
+          {/* 404 */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </div>
+      {!isAuthPage && <BottomNavigation />}
+      <SonnerToaster position="top-right" richColors closeButton />
+      <Toaster />
+    </>
   );
 }
 

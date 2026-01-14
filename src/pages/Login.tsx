@@ -1,23 +1,22 @@
-
 import React, { useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import Layout from "@/components/Layout";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Loader2, Store, Mail, Lock } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email({
-    message: "Please enter a valid email address",
+    message: "يرجى إدخال بريد إلكتروني صحيح",
   }),
   password: z.string().min(6, {
-    message: "Password must be at least 6 characters",
+    message: "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
   }),
 });
 
@@ -29,14 +28,10 @@ const Login = () => {
   const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Get redirect URL from query params or sessionStorage
   const redirectParam = searchParams.get('redirect');
 
-  // Redirect if already logged in
   React.useEffect(() => {
     if (user && !authLoading) {
-      console.log('User already logged in, checking for redirect target');
-      // Priority: query param > sessionStorage > home
       const redirectTarget = redirectParam || sessionStorage.getItem('redirectAfterLogin') || '/';
       sessionStorage.removeItem('redirectAfterLogin');
       navigate(redirectTarget);
@@ -56,21 +51,15 @@ const Login = () => {
 
     setIsSubmitting(true);
     try {
-      console.log("Attempting login for:", data.email);
-
       const success = await login(data.email, data.password);
       if (success) {
-        // Priority: query param > sessionStorage > home
         const destination = redirectParam || sessionStorage.getItem('redirectAfterLogin') || '/';
         sessionStorage.removeItem('redirectAfterLogin');
-        console.log("Login successful, hard navigating to:", destination);
-
-        // FORCE hard reload to ensure Auth State is 100% synced
         window.location.assign(destination);
       }
     } catch (error) {
       console.error('Login submission error:', error);
-      toast.error('Login failed. Please try again.');
+      toast.error('فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.');
     } finally {
       setIsSubmitting(false);
     }
@@ -78,111 +67,175 @@ const Login = () => {
 
   if (authLoading) {
     return (
-      <Layout>
-        <div className="flex justify-center items-center min-h-[80vh]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-2 text-gray-600">Loading...</p>
-          </div>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-[#fffbf0] to-[#ffdcb0]">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-lg text-orange-900">جاري التحميل...</p>
         </div>
-      </Layout>
+      </div>
     );
   }
 
   return (
-    <Layout>
-      <div className="flex justify-center items-center min-h-[80vh] w-full">
-        <Card className="w-full max-w-md shadow-lg">
-          <CardHeader className="bg-primary text-primary-foreground rounded-t-md">
-            <CardTitle className="text-center text-2xl">User Login</CardTitle>
-            <CardDescription className="text-center text-primary-foreground/80">
-              Enter your credentials to access your account
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-700 dark:text-gray-300">Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          id="email"
-                          name="email"
-                          type="email"
-                          placeholder="you@example.com"
-                          {...field}
-                          autoComplete="username"
-                          disabled={isSubmitting}
-                          className="transition-all bg-white/80 dark:bg-gray-800"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-700 dark:text-gray-300">Password</FormLabel>
-                      <FormControl>
-                        <Input
-                          id="password"
-                          name="password"
-                          type="password"
-                          placeholder="••••••••"
-                          {...field}
-                          autoComplete="current-password"
-                          disabled={isSubmitting}
-                          className="transition-all bg-white/80 dark:bg-gray-800"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <div className="flex items-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Logging in...
-                    </div>
-                  ) : (
-                    "Log in"
-                  )}
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-3 py-4">
-            <div className="text-center w-full">
-              <span className="text-sm text-muted-foreground">Don't have an account? </span>
-              <Link to="/signup" className="text-primary hover:underline font-medium">
-                Sign up
-              </Link>
-            </div>
-            {/* Vendor CTA */}
-            <div className="text-center w-full pt-2 border-t border-border">
-              <Link
-                to="/become-vendor"
-                className="text-sm text-primary hover:underline font-medium flex items-center justify-center gap-1"
-              >
-                احصل علي متجرك الخاص بك الان
-              </Link>
-            </div>
-          </CardFooter>
-        </Card>
+    <div className="fixed inset-0 z-50 flex flex-col lg:flex-row overflow-hidden">
+      {/* Left Column - Brand Experience */}
+      <div className="lg:w-1/2 bg-gradient-to-br from-[#fffbf0] to-[#ffdcb0] relative flex-shrink-0">
+        {/* Content */}
+        <div className="flex flex-col items-center justify-center h-full p-6 lg:p-12 text-center">
+          {/* Logo */}
+          <Link to="/" className="mb-4 lg:mb-6">
+            <img
+              src="/logo.png"
+              alt="Sarraly"
+              className="h-14 lg:h-20 object-contain"
+            />
+          </Link>
+
+          {/* Brand Name */}
+          <h1 className="text-2xl lg:text-4xl font-bold text-orange-900 mb-2 lg:mb-4" style={{ fontFamily: 'Cairo, sans-serif' }}>
+            سرعلي
+          </h1>
+
+          {/* Tagline */}
+          <p className="text-base lg:text-xl text-orange-800/90 max-w-md leading-relaxed font-medium" style={{ fontFamily: 'Cairo, sans-serif' }}>
+            مرحباً بعودتك إلى سرعلي
+            <br />
+            <span className="text-orange-700/70 text-sm lg:text-lg">واصل نمو تجارتك معنا</span>
+          </p>
+
+          {/* Feature badges - hidden on mobile */}
+          <div className="hidden lg:flex flex-wrap justify-center gap-3 mt-6">
+            <span className="bg-white/50 text-orange-900 px-4 py-1.5 rounded-full text-sm font-medium">
+              تسوق آمن
+            </span>
+            <span className="bg-white/50 text-orange-900 px-4 py-1.5 rounded-full text-sm font-medium">
+              توصيل سريع
+            </span>
+            <span className="bg-white/50 text-orange-900 px-4 py-1.5 rounded-full text-sm font-medium">
+              جودة عالية
+            </span>
+          </div>
+        </div>
       </div>
-    </Layout>
+
+      {/* Right Column - Form */}
+      <div className="lg:w-1/2 flex items-center justify-center p-4 lg:p-8 bg-white flex-1 overflow-y-auto">
+        <div className="w-full max-w-md">
+          <Card className="shadow-xl border-0 rounded-2xl overflow-hidden">
+            <CardHeader className="text-center pb-4 pt-6">
+              <CardTitle className="text-xl lg:text-2xl font-bold text-foreground">
+                تسجيل الدخول
+              </CardTitle>
+              <CardDescription className="text-sm mt-1">
+                أدخل بياناتك للوصول إلى حسابك
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="px-5 lg:px-6">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right block text-sm">البريد الإلكتروني</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Mail className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Input
+                              type="email"
+                              placeholder="example@email.com"
+                              {...field}
+                              autoComplete="username"
+                              disabled={isSubmitting}
+                              className="pr-9 h-11 rounded-xl border-gray-200 focus:border-primary focus:ring-primary/30 text-left"
+                              dir="ltr"
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage className="text-right text-xs" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right block text-sm">كلمة المرور</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Input
+                              type="password"
+                              placeholder="••••••••"
+                              {...field}
+                              autoComplete="current-password"
+                              disabled={isSubmitting}
+                              className="pr-9 h-11 rounded-xl border-gray-200 focus:border-primary focus:ring-primary/30"
+                              dir="ltr"
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage className="text-right text-xs" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button
+                    type="submit"
+                    className="w-full h-11 text-base font-bold rounded-xl bg-[#F4A261] hover:bg-[#E76F51] text-white shadow-lg shadow-orange-300/30"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        جاري تسجيل الدخول...
+                      </div>
+                    ) : (
+                      "دخول"
+                    )}
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+
+            <CardFooter className="flex flex-col space-y-3 px-5 lg:px-6 pb-6 pt-2">
+              {/* Sign up link */}
+              <div className="text-center w-full text-sm">
+                <span className="text-muted-foreground">ليس لديك حساب؟ </span>
+                <Link
+                  to="/signup"
+                  className="text-primary hover:underline font-semibold"
+                >
+                  إنشاء حساب جديد
+                </Link>
+              </div>
+
+              {/* Vendor CTA */}
+              <div className="w-full pt-3 border-t border-border">
+                <Link
+                  to="/become-vendor"
+                  className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-amber-50 hover:bg-amber-100 rounded-xl text-primary font-semibold transition-colors text-sm"
+                >
+                  <Store className="w-4 h-4" />
+                  احصل على متجرك الخاص الآن
+                </Link>
+              </div>
+            </CardFooter>
+          </Card>
+
+          {/* Back to home link */}
+          <div className="text-center mt-4">
+            <Link to="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              ← العودة للصفحة الرئيسية
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

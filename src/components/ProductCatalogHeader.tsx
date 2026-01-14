@@ -4,7 +4,7 @@ import { Button } from './ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ProductCatalogHeaderProps {
-  cart: {product: any, quantity: number}[];
+  cart: { product: any, quantity: number }[];
   onCartClick: () => void;
 }
 
@@ -15,12 +15,12 @@ const ProductCatalogHeader: React.FC<ProductCatalogHeaderProps> = ({ cart, onCar
 
   return (
     <div className="flex justify-between items-center mb-6 min-h-[48px]">
-      <h2 className="text-3xl font-bold text-green-500">Our Products</h2>
+      <h2 className="text-3xl font-bold text-primary">Our Products</h2>
       {user && !isAdmin && (
         <div className="relative">
           <Button
             onClick={onCartClick}
-            className="bg-green-800 hover:bg-green-900 interactive-button"
+            className="bg-primary hover:bg-primary/90 interactive-button"
           >
             Cart ({cartItemCount})
           </Button>

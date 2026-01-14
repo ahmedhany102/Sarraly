@@ -1,49 +1,34 @@
-
 import React, { useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import Layout from "@/components/Layout";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Loader2, Store, Mail, Lock, User, CheckCircle, Eye, EyeOff } from "lucide-react";
 
 const signupSchema = z
   .object({
     name: z.string().min(2, {
-      message: "Name must be at least 2 characters",
+      message: "الاسم يجب أن يكون حرفين على الأقل",
     }),
     email: z.string().email({
-      message: "Please enter a valid email address",
+      message: "يرجى إدخال بريد إلكتروني صحيح",
     }),
     password: z.string().min(8, {
-      message: "Password must be at least 8 characters",
+      message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل",
     }),
     confirmPassword: z.string().min(8, {
-      message: "Confirm Password must be at least 8 characters",
+      message: "تأكيد كلمة المرور يجب أن يكون 8 أحرف على الأقل",
     }),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
+    message: "كلمتا المرور غير متطابقتين",
     path: ["confirmPassword"],
   });
 
@@ -57,12 +42,10 @@ const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState(false);
 
-  // Get redirect URL from query params
   const redirectParam = searchParams.get('redirect');
 
   React.useEffect(() => {
     if (user && !authLoading && !isSubmitting) {
-      // Priority: query param > sessionStorage > home
       const redirectTarget = redirectParam || sessionStorage.getItem('redirectAfterLogin') || '/';
       sessionStorage.removeItem('redirectAfterLogin');
       navigate(redirectTarget);
@@ -84,42 +67,25 @@ const Signup = () => {
 
     setIsSubmitting(true);
     try {
-      console.log('📝 Attempting signup for:', data.email);
-
-      // Use AuthContext signup function (implements imperative state injection)
       const success = await signup(data.email, data.password, data.name);
 
       if (!success) {
-        console.error('❌ Signup failed');
-        // Error toast is already shown by the signup function
         return;
       }
 
-      // Check if session exists (auto-login is enabled)
-      // We need this check to determine navigation vs. email confirmation UI
       const { data: { session: currentSession } } = await supabase.auth.getSession();
 
       if (currentSession) {
-        console.log('✅ Signup successful with session, auto-login active');
-        // Success toast is already shown by the secureSignup function
-
-        // Brief delay allows React state updates from context to propagate
-        // Context updates state imperatively, but React updates are still async
         await new Promise(resolve => setTimeout(resolve, 100));
-
-        // Navigate to destination
         const destination = redirectParam || '/';
-        console.log('🚀 Navigating to:', destination);
         navigate(destination, { replace: true });
       } else {
-        // Email confirmation is enabled - show message
-        console.log('📧 Signup successful but email confirmation required');
-        toast.info('Please check your email to confirm your account.');
+        toast.info('يرجى التحقق من بريدك الإلكتروني لتأكيد حسابك.');
         setSignupSuccess(true);
       }
     } catch (error) {
       console.error('Signup submission error:', error);
-      toast.error('Signup failed. Please try again.');
+      toast.error('فشل إنشاء الحساب. يرجى المحاولة مرة أخرى.');
     } finally {
       setIsSubmitting(false);
     }
@@ -127,184 +93,259 @@ const Signup = () => {
 
   if (authLoading) {
     return (
-      <Layout>
-        <div className="flex justify-center items-center min-h-[80vh]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-2 text-gray-600">Loading...</p>
-          </div>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-[#fffbf0] to-[#ffdcb0]">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-lg text-orange-900">جاري التحميل...</p>
         </div>
-      </Layout>
+      </div>
     );
   }
 
   if (signupSuccess) {
     return (
-      <Layout>
-        <div className="flex justify-center items-center min-h-[80vh]">
-          <Card className="w-full max-w-md shadow-lg">
-            <CardHeader className="bg-primary text-primary-foreground rounded-t-md">
-              <CardTitle className="text-center text-2xl">Account Created!</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6 text-center">
-              <div className="mb-4">
-                <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-foreground">Successfully Registered!</h3>
-                <p className="text-muted-foreground mt-2">
-                  Your account has been created. You will be redirected to the login page shortly.
-                </p>
-                <p className="text-sm text-muted-foreground mt-4">
-                  If email confirmation is enabled, please check your email before logging in.
-                </p>
-              </div>
-              <Button
-                onClick={() => navigate("/login")}
-                className="w-full"
-              >
-                Go to Login
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </Layout>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-[#fffbf0] to-[#ffdcb0] p-4">
+        <Card className="w-full max-w-md shadow-2xl border-0 rounded-2xl">
+          <CardHeader className="text-center pt-8">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-8 h-8 text-green-600" />
+            </div>
+            <CardTitle className="text-xl">تم إنشاء الحساب بنجاح!</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center px-6">
+            <p className="text-muted-foreground mb-6 text-sm">
+              تم إنشاء حسابك بنجاح. يرجى التحقق من بريدك الإلكتروني لتأكيد الحساب.
+            </p>
+            <Button
+              onClick={() => navigate("/login")}
+              className="w-full h-11 text-base font-bold rounded-xl bg-primary hover:bg-primary/90"
+            >
+              الذهاب لتسجيل الدخول
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <Layout>
-      <div className="flex justify-center items-center min-h-[80vh]">
-        <Card className="w-full max-w-md shadow-lg animate-fade-in">
-          <CardHeader className="bg-primary text-primary-foreground rounded-t-md">
-            <CardTitle className="text-center text-2xl">Create Account</CardTitle>
-            <CardDescription className="text-center text-primary-foreground/80">
-              Enter your information to sign up for an account
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-700 dark:text-gray-300">Name</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Your name"
-                          {...field}
-                          autoComplete="name"
-                          disabled={isSubmitting}
-                          className="transition-all"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-700 dark:text-gray-300">Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="you@example.com"
-                          {...field}
-                          autoComplete="email"
-                          disabled={isSubmitting}
-                          className="transition-all"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-700 dark:text-gray-300">Password</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            type={showPassword ? "text" : "password"}
-                            placeholder="••••••••"
-                            {...field}
-                            autoComplete="new-password"
-                            disabled={isSubmitting}
-                            className="pr-10 transition-all"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword((prev) => !prev)}
-                            className="absolute right-2 top-2 text-sm text-gray-600 dark:text-gray-300"
-                          >
-                            {showPassword ? "Hide" : "Show"}
-                          </button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-700 dark:text-gray-300">Confirm Password</FormLabel>
-                      <FormControl>
-                        <Input
-                          type={showPassword ? "text" : "password"}
-                          placeholder="••••••••"
-                          {...field}
-                          autoComplete="new-password"
-                          disabled={isSubmitting}
-                          className="transition-all"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  type="submit"
-                  className="w-full transition-transform hover:scale-[1.02] active:scale-[0.98]"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <div className="flex items-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Creating Account...
-                    </div>
-                  ) : (
-                    "Create Account"
-                  )}
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-2 py-4">
-            <div className="text-center w-full">
-              <span className="text-sm text-muted-foreground">Already have an account? </span>
-              <Link
-                to="/login"
-                className="text-primary hover:underline font-medium"
-              >
-                Log in
-              </Link>
-            </div>
-          </CardFooter>
-        </Card>
+    <div className="fixed inset-0 z-50 flex flex-col lg:flex-row overflow-hidden">
+      {/* Left Column - Brand Experience */}
+      <div className="lg:w-1/2 bg-gradient-to-br from-[#fffbf0] to-[#ffdcb0] relative flex-shrink-0">
+        {/* Content */}
+        <div className="flex flex-col items-center justify-center h-full p-6 lg:p-12 text-center">
+          {/* Logo */}
+          <Link to="/" className="mb-4 lg:mb-6">
+            <img
+              src="/logo.png"
+              alt="Sarraly"
+              className="h-14 lg:h-20 object-contain"
+            />
+          </Link>
+
+          {/* Brand Name */}
+          <h1 className="text-2xl lg:text-4xl font-bold text-orange-900 mb-2 lg:mb-4" style={{ fontFamily: 'Cairo, sans-serif' }}>
+            سرعلي
+          </h1>
+
+          {/* Tagline */}
+          <p className="text-base lg:text-xl text-orange-800/90 max-w-md leading-relaxed font-medium" style={{ fontFamily: 'Cairo, sans-serif' }}>
+            ابدأ رحلتك في عالم التجارة الإلكترونية
+            <br />
+            <span className="text-orange-700/70 text-sm lg:text-lg">في ثوانٍ معدودة</span>
+          </p>
+
+          {/* Feature badges - hidden on mobile */}
+          <div className="hidden lg:flex flex-wrap justify-center gap-3 mt-6">
+            <span className="bg-white/50 text-orange-900 px-4 py-1.5 rounded-full text-sm font-medium">
+              تسجيل مجاني
+            </span>
+            <span className="bg-white/50 text-orange-900 px-4 py-1.5 rounded-full text-sm font-medium">
+              بياناتك آمنة
+            </span>
+            <span className="bg-white/50 text-orange-900 px-4 py-1.5 rounded-full text-sm font-medium">
+              انطلق في ثوانٍ
+            </span>
+          </div>
+        </div>
       </div>
-    </Layout>
+
+      {/* Right Column - Form */}
+      <div className="lg:w-1/2 flex items-center justify-center p-4 lg:p-6 bg-white flex-1 overflow-y-auto">
+        <div className="w-full max-w-md">
+          <Card className="shadow-xl border-0 rounded-2xl overflow-hidden">
+            <CardHeader className="text-center pb-2 pt-5">
+              <CardTitle className="text-xl lg:text-2xl font-bold text-foreground">
+                إنشاء حساب جديد
+              </CardTitle>
+              <CardDescription className="text-sm mt-1">
+                أدخل بياناتك للانضمام إلينا
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="px-5 lg:px-6">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+                  {/* Name */}
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right block text-sm">الاسم الكامل</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <User className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Input
+                              placeholder="أحمد محمد"
+                              {...field}
+                              disabled={isSubmitting}
+                              className="pr-9 h-10 rounded-xl border-gray-200 focus:border-primary focus:ring-primary/30 text-right"
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage className="text-right text-xs" />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Email */}
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right block text-sm">البريد الإلكتروني</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Mail className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Input
+                              type="email"
+                              placeholder="example@email.com"
+                              {...field}
+                              autoComplete="email"
+                              disabled={isSubmitting}
+                              className="pr-9 h-10 rounded-xl border-gray-200 focus:border-primary focus:ring-primary/30 text-left"
+                              dir="ltr"
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage className="text-right text-xs" />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Password */}
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right block text-sm">كلمة المرور</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Input
+                              type={showPassword ? "text" : "password"}
+                              placeholder="••••••••"
+                              {...field}
+                              autoComplete="new-password"
+                              disabled={isSubmitting}
+                              className="pr-9 pl-9 h-10 rounded-xl border-gray-200 focus:border-primary focus:ring-primary/30"
+                              dir="ltr"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            >
+                              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </FormControl>
+                        <FormMessage className="text-right text-xs" />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Confirm Password */}
+                  <FormField
+                    control={form.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-right block text-sm">تأكيد كلمة المرور</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Input
+                              type={showPassword ? "text" : "password"}
+                              placeholder="••••••••"
+                              {...field}
+                              autoComplete="new-password"
+                              disabled={isSubmitting}
+                              className="pr-9 h-10 rounded-xl border-gray-200 focus:border-primary focus:ring-primary/30"
+                              dir="ltr"
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage className="text-right text-xs" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button
+                    type="submit"
+                    className="w-full h-11 text-base font-bold rounded-xl bg-[#F4A261] hover:bg-[#E76F51] text-white shadow-lg shadow-orange-300/30 mt-1"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        جاري إنشاء الحساب...
+                      </div>
+                    ) : (
+                      "إنشاء الحساب"
+                    )}
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+
+            <CardFooter className="flex flex-col space-y-2 px-5 lg:px-6 pb-5 pt-2">
+              {/* Login link */}
+              <div className="text-center w-full text-sm">
+                <span className="text-muted-foreground">لديك حساب بالفعل؟ </span>
+                <Link
+                  to="/login"
+                  className="text-primary hover:underline font-semibold"
+                >
+                  تسجيل الدخول
+                </Link>
+              </div>
+
+              {/* Vendor CTA */}
+              <div className="w-full pt-2 border-t border-border">
+                <Link
+                  to="/become-vendor"
+                  className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-amber-50 hover:bg-amber-100 rounded-xl text-primary font-semibold transition-colors text-sm"
+                >
+                  <Store className="w-4 h-4" />
+                  هل تريد البيع معنا؟ سجل واحصل علي موقعك الخاص بك
+                </Link>
+              </div>
+            </CardFooter>
+          </Card>
+
+          {/* Back to home link */}
+          <div className="text-center mt-3">
+            <Link to="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              ← العودة للصفحة الرئيسية
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

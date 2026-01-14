@@ -398,7 +398,7 @@ const Cart = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
                 <Card>
-                  <CardHeader className="bg-gradient-to-r from-green-900 to-black text-white py-3">
+                  <CardHeader className="bg-gradient-to-r from-primary to-amber-700 text-white py-3">
                     <CardTitle>Complete Your Order</CardTitle>
                   </CardHeader>
                   <CardContent className="p-4">
@@ -418,7 +418,7 @@ const Cart = () => {
 
               <div>
                 <Card>
-                  <CardHeader className="bg-gradient-to-r from-green-900 to-black text-white py-3">
+                  <CardHeader className="bg-gradient-to-r from-primary to-amber-700 text-white py-3">
                     <CardTitle>Order Summary</CardTitle>
                   </CardHeader>
                   <CardContent className="p-4">

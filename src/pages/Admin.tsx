@@ -26,7 +26,7 @@ const Admin = ({ activeTab = "dashboard" }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [currentTab, setCurrentTab] = useState(activeTab);
-  
+
   const { products, loading: productsLoading } = useSupabaseProducts();
   const { users, loading: usersLoading } = useSupabaseUsers();
   const { orders, loading: ordersLoading } = useSupabaseOrders();
@@ -71,7 +71,7 @@ const Admin = ({ activeTab = "dashboard" }) => {
         </div>
 
         {/* Stats Dashboard */}
-        <AdminDashboardStats 
+        <AdminDashboardStats
           totalProducts={products?.length || 0}
           totalUsers={users?.length || 0}
           totalOrders={orders?.length || 0}
@@ -79,69 +79,71 @@ const Admin = ({ activeTab = "dashboard" }) => {
         />
 
         {/* Tabs */}
-        <Tabs 
-          value={currentTab} 
+        <Tabs
+          value={currentTab}
           onValueChange={setCurrentTab}
           className="w-full"
         >
-          <TabsList className="flex overflow-x-auto mb-6 pb-2 scrollbar-hide">
-            <TabsTrigger value="dashboard" onClick={() => navigate("/admin")}>
-              <Home className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">الرئيسية</span>
-            </TabsTrigger>
-            <TabsTrigger value="categories" onClick={() => setCurrentTab("categories")}>
-              <FolderTree className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">الأقسام</span>
-            </TabsTrigger>
-            <TabsTrigger value="sections" onClick={() => setCurrentTab("sections")}>
-              <LayoutGrid className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">السيكشنز</span>
-            </TabsTrigger>
-            <TabsTrigger value="products" onClick={() => navigate("/admin/products")}>
-              <Package className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">المنتجات</span>
-            </TabsTrigger>
-            <TabsTrigger value="vendor-products" onClick={() => setCurrentTab("vendor-products")}>
-              <Store className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">منتجات البائعين</span>
-            </TabsTrigger>
-            <TabsTrigger value="orders" onClick={() => navigate("/admin/orders")}>
-              <ShoppingCart className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">الطلبات</span>
-            </TabsTrigger>
-            <TabsTrigger value="vendor-orders" onClick={() => setCurrentTab("vendor-orders")}>
-              <ShoppingCart className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">طلبات البائعين</span>
-            </TabsTrigger>
-            <TabsTrigger value="coupons" onClick={() => navigate("/admin/coupons")}>
-              <Ticket className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">الكوبونات</span>
-            </TabsTrigger>
-            <TabsTrigger value="contact" onClick={() => navigate("/admin/contact")}>
-              <Settings className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">بيانات التواصل</span>
-            </TabsTrigger>
-            <TabsTrigger value="ads" onClick={() => navigate("/admin/ads")}>
-              <Settings className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">الإعلانات</span>
-            </TabsTrigger>
-            <TabsTrigger value="reviews" onClick={() => setCurrentTab("reviews")}>
-              <Star className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">التقييمات</span>
-            </TabsTrigger>
-            <TabsTrigger value="vendors" onClick={() => navigate("/admin/vendors")}>
-              <Store className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">البائعين</span>
-            </TabsTrigger>
-            <TabsTrigger value="analytics" onClick={() => setCurrentTab("analytics")}>
-              <BarChart3 className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">الإيرادات</span>
-            </TabsTrigger>
-            <TabsTrigger value="users" onClick={() => navigate("/admin/users")}>
-              <Users className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">المستخدمين</span>
-            </TabsTrigger>
-          </TabsList>
+          <div className="w-full overflow-x-auto pb-2 mb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+            <TabsList className="inline-flex flex-nowrap min-w-max gap-1 pr-8">
+              <TabsTrigger value="dashboard" onClick={() => navigate("/admin")} className="shrink-0">
+                <Home className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">الرئيسية</span>
+              </TabsTrigger>
+              <TabsTrigger value="categories" onClick={() => setCurrentTab("categories")} className="shrink-0">
+                <FolderTree className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">الأقسام</span>
+              </TabsTrigger>
+              <TabsTrigger value="sections" onClick={() => setCurrentTab("sections")} className="shrink-0">
+                <LayoutGrid className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">السيكشنز</span>
+              </TabsTrigger>
+              <TabsTrigger value="products" onClick={() => navigate("/admin/products")} className="shrink-0">
+                <Package className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">المنتجات</span>
+              </TabsTrigger>
+              <TabsTrigger value="vendor-products" onClick={() => setCurrentTab("vendor-products")} className="shrink-0">
+                <Store className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">منتجات البائعين</span>
+              </TabsTrigger>
+              <TabsTrigger value="orders" onClick={() => navigate("/admin/orders")} className="shrink-0">
+                <ShoppingCart className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">الطلبات</span>
+              </TabsTrigger>
+              <TabsTrigger value="vendor-orders" onClick={() => setCurrentTab("vendor-orders")} className="shrink-0">
+                <ShoppingCart className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">طلبات البائعين</span>
+              </TabsTrigger>
+              <TabsTrigger value="coupons" onClick={() => navigate("/admin/coupons")} className="shrink-0">
+                <Ticket className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">الكوبونات</span>
+              </TabsTrigger>
+              <TabsTrigger value="contact" onClick={() => navigate("/admin/contact")} className="shrink-0">
+                <Settings className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">بيانات التواصل</span>
+              </TabsTrigger>
+              <TabsTrigger value="ads" onClick={() => navigate("/admin/ads")} className="shrink-0">
+                <Settings className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">الإعلانات</span>
+              </TabsTrigger>
+              <TabsTrigger value="reviews" onClick={() => setCurrentTab("reviews")} className="shrink-0">
+                <Star className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">التقييمات</span>
+              </TabsTrigger>
+              <TabsTrigger value="vendors" onClick={() => navigate("/admin/vendors")} className="shrink-0">
+                <Store className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">البائعين</span>
+              </TabsTrigger>
+              <TabsTrigger value="analytics" onClick={() => setCurrentTab("analytics")} className="shrink-0">
+                <BarChart3 className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">الإيرادات</span>
+              </TabsTrigger>
+              <TabsTrigger value="users" onClick={() => navigate("/admin/users")} className="shrink-0">
+                <Users className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">المستخدمين</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="dashboard" className="mt-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -206,7 +208,7 @@ const Admin = ({ activeTab = "dashboard" }) => {
           <TabsContent value="analytics">
             <RevenueAnalytics />
           </TabsContent>
-          
+
           <TabsContent value="users">
             <UsersPanel />
           </TabsContent>
