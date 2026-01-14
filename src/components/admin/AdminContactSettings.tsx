@@ -12,6 +12,7 @@ import { Plus, Trash2, HelpCircle, FileText, Phone } from 'lucide-react';
 interface FAQItem {
   question: string;
   answer: string;
+  link_url?: string;
 }
 
 const AdminContactSettings = () => {
@@ -82,10 +83,10 @@ const AdminContactSettings = () => {
 
   // FAQ Management Functions
   const addFaqItem = () => {
-    setFaqList(prev => [...prev, { question: '', answer: '' }]);
+    setFaqList(prev => [...prev, { question: '', answer: '', link_url: '' }]);
   };
 
-  const updateFaqItem = (index: number, field: 'question' | 'answer', value: string) => {
+  const updateFaqItem = (index: number, field: 'question' | 'answer' | 'link_url', value: string) => {
     setFaqList(prev => prev.map((item, i) =>
       i === index ? { ...item, [field]: value } : item
     ));
@@ -423,6 +424,16 @@ const AdminContactSettings = () => {
                               onChange={(e) => updateFaqItem(index, 'answer', e.target.value)}
                               placeholder="أدخل الإجابة..."
                               className="min-h-[100px] bg-background"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">رابط إضافي (اختياري)</label>
+                            <Input
+                              value={faq.link_url || ''}
+                              onChange={(e) => updateFaqItem(index, 'link_url', e.target.value)}
+                              placeholder="https://youtube.com/... أو أي رابط آخر"
+                              className="bg-background"
+                              dir="ltr"
                             />
                           </div>
                         </div>

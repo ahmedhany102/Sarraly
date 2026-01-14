@@ -34,9 +34,30 @@ export const useVendorOrders = (statusFilter?: string) => {
   const { user } = useAuth();
   const [orders, setOrders] = useState<VendorOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [vendorProfileId, setVendorProfileId] = useState<string | null>(null);
+
+  // Fetch vendor profile ID first
+  useEffect(() => {
+    const fetchVendorId = async () => {
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('vendor_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('status', 'approved')
+        .maybeSingle();
+
+      if (!error && data) {
+        setVendorProfileId(data.id);
+      }
+    };
+
+    fetchVendorId();
+  }, [user]);
 
   const fetchOrders = useCallback(async () => {
-    if (!user) {
+    if (!user || !vendorProfileId) {
       setLoading(false);
       return;
     }
@@ -44,8 +65,9 @@ export const useVendorOrders = (statusFilter?: string) => {
     try {
       setLoading(true);
 
+      // CRITICAL: Pass the actual vendor_id to filter orders
       const { data, error } = await supabase.rpc('get_vendor_orders', {
-        _vendor_id: null,
+        _vendor_id: vendorProfileId,
         _status_filter: statusFilter || 'all'
       });
 
@@ -66,15 +88,18 @@ export const useVendorOrders = (statusFilter?: string) => {
     } finally {
       setLoading(false);
     }
-  }, [user, statusFilter]);
+  }, [user, vendorProfileId, statusFilter]);
 
   useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders]);
+    if (vendorProfileId) {
+      fetchOrders();
+    }
+  }, [fetchOrders, vendorProfileId]);
 
   return {
     orders,
     loading,
+    vendorProfileId,
     refetch: fetchOrders
   };
 };
@@ -103,14 +128,35 @@ export interface VendorOrderInfo {
   notes?: string;
 }
 
-export const useVendorOrderDetails = (orderId: string) => {
+export const useVendorOrderDetails = (orderId: string, vendorId?: string | null) => {
   const { user } = useAuth();
   const [items, setItems] = useState<VendorOrderItem[]>([]);
   const [orderInfo, setOrderInfo] = useState<VendorOrderInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [vendorProfileId, setVendorProfileId] = useState<string | null>(vendorId || null);
+
+  // Fetch vendor profile ID if not provided
+  useEffect(() => {
+    const fetchVendorId = async () => {
+      if (vendorId || !user) return;
+
+      const { data, error } = await supabase
+        .from('vendor_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('status', 'approved')
+        .maybeSingle();
+
+      if (!error && data) {
+        setVendorProfileId(data.id);
+      }
+    };
+
+    fetchVendorId();
+  }, [user, vendorId]);
 
   const fetchItems = useCallback(async () => {
-    if (!user || !orderId) {
+    if (!user || !orderId || !vendorProfileId) {
       setLoading(false);
       return;
     }
@@ -129,9 +175,10 @@ export const useVendorOrderDetails = (orderId: string) => {
         setOrderInfo(orderData[0] as VendorOrderInfo);
       }
 
+      // CRITICAL: Pass the actual vendor_id to filter items
       const { data, error } = await supabase.rpc('get_vendor_order_items', {
         _order_id: orderId,
-        _vendor_id: null
+        _vendor_id: vendorProfileId
       });
 
       if (error) {
@@ -147,11 +194,13 @@ export const useVendorOrderDetails = (orderId: string) => {
     } finally {
       setLoading(false);
     }
-  }, [user, orderId]);
+  }, [user, orderId, vendorProfileId]);
 
   useEffect(() => {
-    fetchItems();
-  }, [fetchItems]);
+    if (vendorProfileId && orderId) {
+      fetchItems();
+    }
+  }, [fetchItems, vendorProfileId, orderId]);
 
   const updateItemStatus = async (itemId: string, newStatus: string): Promise<boolean> => {
     try {

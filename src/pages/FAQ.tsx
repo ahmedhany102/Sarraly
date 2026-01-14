@@ -2,7 +2,7 @@ import React from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSupabaseContactSettings } from '@/hooks/useSupabaseContactSettings';
-import { Loader2, HelpCircle, ChevronDown } from 'lucide-react';
+import { Loader2, HelpCircle, ExternalLink } from 'lucide-react';
 import {
     Accordion,
     AccordionContent,
@@ -13,6 +13,7 @@ import {
 interface FAQItem {
     question: string;
     answer: string;
+    link_url?: string;
 }
 
 const FAQ = () => {
@@ -68,6 +69,17 @@ const FAQ = () => {
                                             <div className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
                                                 {faq.answer}
                                             </div>
+                                            {faq.link_url && faq.link_url.trim() !== '' && (
+                                                <a
+                                                    href={faq.link_url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center gap-2 text-primary hover:underline mt-3 font-medium"
+                                                >
+                                                    <ExternalLink className="w-4 h-4" />
+                                                    <span>زيارة الرابط</span>
+                                                </a>
+                                            )}
                                         </AccordionContent>
                                     </AccordionItem>
                                 ))}

@@ -49,10 +49,11 @@ interface VendorOrdersTabProps {
 const OrderDetailsDialog: React.FC<{
   orderId: string;
   orderNumber: string;
+  vendorProfileId?: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-}> = ({ orderId, orderNumber, open, onOpenChange }) => {
-  const { items, orderInfo, loading, updateItemStatus, updatePaymentStatus } = useVendorOrderDetails(orderId);
+}> = ({ orderId, orderNumber, vendorProfileId, open, onOpenChange }) => {
+  const { items, orderInfo, loading, updateItemStatus, updatePaymentStatus } = useVendorOrderDetails(orderId, vendorProfileId);
 
   const handleStatusChange = async (itemId: string, newStatus: string) => {
     await updateItemStatus(itemId, newStatus);
@@ -220,7 +221,7 @@ const OrderDetailsDialog: React.FC<{
 
 export const VendorOrdersTab: React.FC<VendorOrdersTabProps> = ({ isApproved }) => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const { orders, loading } = useVendorOrders(statusFilter);
+  const { orders, loading, vendorProfileId } = useVendorOrders(statusFilter);
   const [selectedOrder, setSelectedOrder] = useState<VendorOrder | null>(null);
 
   if (!isApproved) {
@@ -356,6 +357,7 @@ export const VendorOrdersTab: React.FC<VendorOrdersTabProps> = ({ isApproved }) 
         <OrderDetailsDialog
           orderId={selectedOrder.order_id}
           orderNumber={selectedOrder.order_number}
+          vendorProfileId={vendorProfileId}
           open={!!selectedOrder}
           onOpenChange={(open) => !open && setSelectedOrder(null)}
         />

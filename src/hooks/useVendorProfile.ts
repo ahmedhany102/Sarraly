@@ -17,6 +17,10 @@ export interface VendorProfile {
   status: VendorStatus;
   created_at: string;
   updated_at: string;
+  // New business info fields
+  sales_channel_link?: string | null;
+  has_physical_store?: boolean;
+  registration_notes?: string | null;
 }
 
 export interface VendorProfileWithUser extends VendorProfile {
