@@ -4,9 +4,11 @@ import { Facebook, Instagram, Twitter, Mail, CreditCard, Banknote, Send } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { useSupabaseContactSettings } from '@/hooks/useSupabaseContactSettings';
 
 const Footer = () => {
   const [email, setEmail] = useState('');
+  const { settings } = useSupabaseContactSettings();
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,6 +19,11 @@ const Footer = () => {
     toast.success('Thanks for subscribing!');
     setEmail('');
   };
+
+  // Get social links from settings with fallbacks
+  const facebookUrl = (settings as any)?.facebook || '';
+  const instagramUrl = (settings as any)?.instagram || '';
+  const twitterUrl = (settings as any)?.twitter || '';
 
   return (
     <footer className="bg-white border-t border-gray-200 mt-auto">
@@ -39,30 +46,36 @@ const Footer = () => {
               ابدأ، بع، وانمُ بلا حدود.
             </p>
             <div className="flex gap-3 justify-end">
-              <a
-                href="https://www.facebook.com/share/16LEN8zQG3/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-primary hover:text-white transition-colors"
-              >
-                <Facebook size={18} />
-              </a>
-              <a
-                href="https://www.instagram.com/a7med0xd/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-primary hover:text-white transition-colors"
-              >
-                <Instagram size={18} />
-              </a>
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-primary hover:text-white transition-colors"
-              >
-                <Twitter size={18} />
-              </a>
+              {facebookUrl && (
+                <a
+                  href={facebookUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-primary hover:text-white transition-colors"
+                >
+                  <Facebook size={18} />
+                </a>
+              )}
+              {instagramUrl && (
+                <a
+                  href={instagramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-primary hover:text-white transition-colors"
+                >
+                  <Instagram size={18} />
+                </a>
+              )}
+              {twitterUrl && (
+                <a
+                  href={twitterUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-primary hover:text-white transition-colors"
+                >
+                  <Twitter size={18} />
+                </a>
+              )}
             </div>
           </div>
 

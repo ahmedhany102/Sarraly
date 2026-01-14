@@ -123,8 +123,24 @@ const BecomeVendor = () => {
     );
   }
 
-  const handleApply = async (storeName: string, storeDescription?: string, phone?: string, address?: string) => {
-    const success = await applyAsVendor(storeName, storeDescription, phone, address);
+  const handleApply = async (
+    storeName: string,
+    storeDescription?: string,
+    phone?: string,
+    address?: string,
+    salesChannelLink?: string,
+    hasPhysicalStore?: boolean,
+    registrationNotes?: string
+  ) => {
+    const success = await applyAsVendor(
+      storeName,
+      storeDescription,
+      phone,
+      address,
+      salesChannelLink,
+      hasPhysicalStore,
+      registrationNotes
+    );
     return success;
   };
 

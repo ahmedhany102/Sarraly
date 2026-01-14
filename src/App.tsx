@@ -37,6 +37,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import './App.css';
 import './autoScroll.css';
 import BottomNavigation from './components/BottomNavigation';
+import ScrollToTop from './components/ScrollToTop';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -54,6 +55,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
+        <ScrollToTop />
         <AuthProvider>
           <AppContent />
         </AuthProvider>
