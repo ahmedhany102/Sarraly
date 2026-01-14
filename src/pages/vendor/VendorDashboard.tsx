@@ -24,12 +24,14 @@ const VendorDashboard = () => {
   const { products } = useVendorProducts();
   const { orders } = useVendorOrders();
   const [vendorId, setVendorId] = React.useState<string | null>(null);
+  const [strictRevenue, setStrictRevenue] = React.useState<number>(0);
 
   // Fetch vendor ID for the current user
   React.useEffect(() => {
     const fetchVendorId = async () => {
       if (!user?.id) return;
-      const { data } = await (await import('@/integrations/supabase/client')).supabase
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data } = await supabase
         .from('vendors')
         .select('id')
         .eq('owner_id', user.id)
@@ -37,6 +39,19 @@ const VendorDashboard = () => {
       if (data) setVendorId(data.id);
     };
     fetchVendorId();
+  }, [user?.id]);
+
+  // Fetch strict revenue from analytics RPC (only paid + delivered orders)
+  React.useEffect(() => {
+    const fetchStrictRevenue = async () => {
+      if (!user?.id) return;
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data, error } = await supabase.rpc('get_vendor_analytics');
+      if (!error && data && data.length > 0) {
+        setStrictRevenue(data[0].total_revenue || 0);
+      }
+    };
+    fetchStrictRevenue();
   }, [user?.id]);
 
   const handleLogout = async () => {
@@ -47,7 +62,6 @@ const VendorDashboard = () => {
   const isApproved = profile?.status === 'approved';
   const activeProducts = products.filter(p => p.status === 'active' || p.status === 'approved').length;
   const pendingOrders = orders.filter(o => o.order_status === 'PENDING' || o.order_status === 'pending').length;
-  const totalRevenue = orders.reduce((sum, o) => sum + (o.vendor_total || 0), 0);
 
   return (
     <Layout hideFooter>
@@ -96,7 +110,7 @@ const VendorDashboard = () => {
               <CardTitle className="text-sm font-medium text-muted-foreground">الإيرادات</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalRevenue.toFixed(2)} ج.م</div>
+              <div className="text-2xl font-bold">{strictRevenue.toFixed(2)} ج.م</div>
               <p className="text-xs text-muted-foreground">إجمالي المبيعات</p>
             </CardContent>
           </Card>
