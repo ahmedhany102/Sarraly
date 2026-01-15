@@ -30,6 +30,22 @@ const SEO: React.FC<SEOProps> = ({
     const siteImage = image || DEFAULTS.image;
     const siteUrl = url || DEFAULTS.url;
 
+    // JSON-LD Schema for structured data
+    const schemaData = {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Sarraly",
+        "alternateName": ["سرعلي", "Sarraly App", "سرعلى"],
+        "url": "https://sarraly.app",
+        "description": "منصة سرعلي - بوابتك لعالم التجارة الإلكترونية المتكامل. ابدأ، بع، وانمُ بلا حدود.",
+        "image": "https://sarraly.app/logo.png",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://sarraly.app/products?search={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    };
+
     return (
         <Helmet>
             {/* Standard Meta Tags */}
@@ -53,6 +69,11 @@ const SEO: React.FC<SEOProps> = ({
             {/* Additional SEO */}
             <meta name="robots" content="index, follow" />
             <link rel="canonical" href={siteUrl} />
+
+            {/* JSON-LD Structured Data */}
+            <script type="application/ld+json">
+                {JSON.stringify(schemaData)}
+            </script>
         </Helmet>
     );
 };
