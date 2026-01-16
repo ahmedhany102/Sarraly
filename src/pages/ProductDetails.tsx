@@ -288,7 +288,12 @@ const ProductDetails = () => {
         featured: product.featured,
         discount: product.discount,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        // Critical: Shipping/Logistics fields for cart calculations
+        user_id: (product as any).user_id,
+        vendor_id: (product as any).vendor_id || vendorId,
+        is_free_shipping: (product as any).is_free_shipping || false,
+        is_fast_shipping: (product as any).is_fast_shipping || false,
       };
 
       const cartSize = variantSelection.size || 'متاح';

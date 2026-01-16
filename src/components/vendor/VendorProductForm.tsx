@@ -178,6 +178,29 @@ export const VendorProductForm: React.FC<VendorProductFormProps> = ({
             </div>
           </div>
 
+          {/* Stock field for Simple Products (no variants) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="stock">الكمية المتاحة (المخزون) *</Label>
+              <Input
+                id="stock"
+                type="number"
+                min="0"
+                step="1"
+                value={formData.stock}
+                onChange={(e) => {
+                  const stockValue = parseInt(e.target.value) || 0;
+                  handleChange('stock', stockValue);
+                  handleChange('inventory', stockValue);
+                }}
+                placeholder="0"
+              />
+              <p className="text-xs text-muted-foreground">
+                للمنتجات البسيطة. إذا أضفت ألوان ومقاسات، سيتم احتساب المخزون منها تلقائياً.
+              </p>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="description">وصف المنتج</Label>
             <Textarea
@@ -259,9 +282,9 @@ export const VendorProductForm: React.FC<VendorProductFormProps> = ({
           </div>
 
           <div className="space-y-2">
-            <Label>صور المنتج الرئيسية</Label>
+            <Label>صور المنتج الرئيسية *</Label>
             <p className="text-xs text-muted-foreground mb-2">
-              هذه الصور تظهر في قائمة المنتجات. أضف صور لكل لون في قسم الألوان والمقاسات.
+              صور المنتج التي ستظهر في المتجر. للمنتجات البسيطة، هذه هي الصور الوحيدة المطلوبة.
             </p>
             <ImageUploader
               value={[formData.main_image, ...(formData.images || [])].filter(Boolean) as string[]}
