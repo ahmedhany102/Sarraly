@@ -36,4 +36,6 @@ export interface SectionProduct {
   average_rating?: number;
   reviews_count?: number;
   hasDiscount?: boolean;
+  // Color swatches
+  colors?: string[] | null;
 }

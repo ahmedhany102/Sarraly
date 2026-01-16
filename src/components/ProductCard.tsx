@@ -259,25 +259,37 @@ const ProductCard = ({ product, className = '', variants = [] }: ProductCardProp
           <div className="flex items-center gap-1 mb-2">
             <span className="text-xs text-muted-foreground">الألوان:</span>
             <div className="flex gap-1">
-              {variants.slice(0, 4).map((variant) => (
-                <button
-                  key={variant.id}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedVariant(variant);
-                  }}
-                  className={`w-4 h-4 rounded-full border-2 ${selectedVariant?.id === variant.id
-                    ? 'border-primary shadow-md'
-                    : 'border-gray-300'
-                    }`}
-                  style={{
-                    backgroundImage: `url(${variant.image_url})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center'
-                  }}
-                  title={variant.label}
-                />
-              ))}
+              {variants.slice(0, 4).map((variant) => {
+                const isSelected = selectedVariant?.id === variant.id;
+                return (
+                  <button
+                    key={variant.id}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setSelectedVariant(variant);
+                    }}
+                    className={`w-5 h-5 rounded-full overflow-hidden transition-all ${isSelected
+                        ? 'ring-2 ring-primary ring-offset-1 scale-110'
+                        : 'border border-gray-300 hover:scale-110'
+                      }`}
+                    title={variant.label}
+                  >
+                    {variant.image_url ? (
+                      <img
+                        src={variant.image_url}
+                        alt={variant.label}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div
+                        className="w-full h-full"
+                        style={{ backgroundColor: variant.hex_code || '#ccc' }}
+                      />
+                    )}
+                  </button>
+                );
+              })}
               {variants.length > 4 && (
                 <span className="text-xs text-muted-foreground">+{variants.length - 4}</span>
               )}

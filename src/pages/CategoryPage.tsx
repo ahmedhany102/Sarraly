@@ -9,6 +9,7 @@ import { useVendorCategories } from '@/hooks/useVendors';
 import { useVendorContext } from '@/hooks/useVendorContext';
 import { useCartIntegration } from '@/hooks/useCartIntegration';
 import { useProductFiltering } from '@/hooks/useProductFiltering';
+import { useBulkProductVariants } from '@/hooks/useBulkProductVariants';
 import ShoppingCartDialog from '@/components/ShoppingCartDialog';
 import ProductCatalogHeader from '@/components/ProductCatalogHeader';
 import { Button } from '@/components/ui/button';
@@ -49,6 +50,10 @@ const CategoryPage = () => {
     if (!isVendorContext || !vendorId) return allProducts;
     return allProducts.filter(p => p.vendor_id === vendorId);
   }, [allProducts, isVendorContext, vendorId]);
+
+  // Fetch color variants for all products
+  const productIds = useMemo(() => products.map(p => p.id), [products]);
+  const { variantsByProduct } = useBulkProductVariants(productIds);
 
   // Find the current category by slug OR id (hamburger menu passes id, direct URL uses slug)
   const category = categories.find(cat => cat.slug === slug || cat.id === slug);
@@ -288,6 +293,7 @@ const CategoryPage = () => {
           searchQuery={searchQuery}
           onAddToCart={handleAddToCart}
           onClearSearch={clearFilters}
+          variantsByProduct={variantsByProduct}
         />
 
         {/* Shopping Cart Dialog */}

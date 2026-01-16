@@ -82,6 +82,7 @@ export function useSectionProducts(sectionId: string, limit: number = 12) {
           vendor_id: p.vendor_id || null,
           is_free_shipping: p.is_free_shipping || false,
           is_fast_shipping: p.is_fast_shipping || false,
+          colors: p.colors || null,
           average_rating: p.average_rating || 0,
           reviews_count: p.reviews_count || 0,
           hasDiscount: (p.discount || 0) > 0
@@ -144,6 +145,7 @@ export function useBestSellers(limit: number = 12) {
             user_id,
             is_free_shipping,
             is_fast_shipping,
+            colors,
             vendors!inner (
               name,
               logo_url,
@@ -181,6 +183,7 @@ export function useBestSellers(limit: number = 12) {
           vendor_id: p.vendor_id || null,
           is_free_shipping: p.is_free_shipping || false,
           is_fast_shipping: p.is_fast_shipping || false,
+          colors: p.colors || null,
           average_rating: p.rating || 0,
           reviews_count: 0,
           hasDiscount: (p.discount || 0) > 0
@@ -242,6 +245,7 @@ export function useHotDeals(limit: number = 12) {
             user_id,
             is_free_shipping,
             is_fast_shipping,
+            colors,
             vendors!inner (
               name,
               logo_url,
@@ -279,6 +283,7 @@ export function useHotDeals(limit: number = 12) {
           vendor_id: p.vendor_id || null,
           is_free_shipping: p.is_free_shipping || false,
           is_fast_shipping: p.is_fast_shipping || false,
+          colors: p.colors || null,
           average_rating: p.rating || 0,
           reviews_count: 0,
           hasDiscount: (p.discount || 0) > 0
@@ -353,6 +358,7 @@ export function useLastViewed(limit: number = 10) {
           vendor_id: p.vendor_id || null,
           is_free_shipping: p.is_free_shipping || false,
           is_fast_shipping: p.is_fast_shipping || false,
+          colors: p.colors || null,
           average_rating: p.average_rating || 0,
           reviews_count: p.reviews_count || 0,
           hasDiscount: (p.discount || 0) > 0

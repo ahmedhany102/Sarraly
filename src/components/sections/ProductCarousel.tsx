@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, ArrowLeft, Flame, Star, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { SectionProduct } from '@/types/section';
 import { toast } from 'sonner';
 import CartDatabase from '@/models/CartDatabase';
 import { useVendorContext } from '@/hooks/useVendorContext';
+import { useBulkProductVariants } from '@/hooks/useBulkProductVariants';
 
 // 🔴 Image optimization helper to reduce Supabase egress
 const getOptimizedUrl = (
@@ -46,6 +47,20 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({
 
   // Get vendor context for vendor-scoped navigation
   const { isVendorContext, vendorSlug } = useVendorContext();
+
+  // Fetch color variants for all products
+  const productIds = useMemo(() => products.map(p => p.id), [products]);
+  const { variantsByProduct } = useBulkProductVariants(productIds);
+
+  // Track selected variant image per product
+  const [selectedImages, setSelectedImages] = useState<Record<string, string>>({});
+
+  // Handle color swatch click - swap image and prevent navigation
+  const handleSwatchClick = (e: React.MouseEvent, productId: string, imageUrl: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedImages(prev => ({ ...prev, [productId]: imageUrl }));
+  };
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
@@ -239,7 +254,7 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({
               <div className="relative aspect-square bg-muted overflow-hidden rounded-t-lg">
                 {product.image_url ? (
                   <img
-                    src={getOptimizedUrl(product.image_url, 200)}
+                    src={getOptimizedUrl(selectedImages[product.id] || product.image_url, 200)}
                     alt={product.name || 'Product'}
                     loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform"
@@ -292,6 +307,45 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({
                     </span>
                   )}
                 </div>
+
+                {/* Color Swatches from Variants */}
+                {variantsByProduct[product.id] && variantsByProduct[product.id].length > 0 && (
+                  <div className="flex items-center gap-1 mb-1">
+                    <span className="text-xs text-muted-foreground">الألوان:</span>
+                    <div className="flex gap-1">
+                      {variantsByProduct[product.id].slice(0, 4).map((variant) => {
+                        const isSelected = selectedImages[product.id] === variant.image_url;
+                        return (
+                          <button
+                            key={variant.id}
+                            onClick={(e) => handleSwatchClick(e, product.id, variant.image_url || product.image_url || '')}
+                            className={`w-5 h-5 rounded-full overflow-hidden transition-all ${isSelected
+                                ? 'ring-2 ring-primary ring-offset-1 scale-110'
+                                : 'border border-gray-300 hover:scale-110'
+                              }`}
+                            title={variant.label}
+                          >
+                            {variant.image_url ? (
+                              <img
+                                src={getOptimizedUrl(variant.image_url, 32)}
+                                alt={variant.label}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div
+                                className="w-full h-full"
+                                style={{ backgroundColor: variant.hex_code || '#ccc' }}
+                              />
+                            )}
+                          </button>
+                        );
+                      })}
+                      {variantsByProduct[product.id].length > 4 && (
+                        <span className="text-xs text-muted-foreground">+{variantsByProduct[product.id].length - 4}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Vendor - Fixed height container to reserve space */}
                 <div className="min-h-[20px]">

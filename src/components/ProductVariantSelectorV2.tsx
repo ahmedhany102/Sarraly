@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 interface ProductVariantSelectorV2Props {
   productId: string;
   basePrice: number;
+  discount?: number; // Product discount percentage
   onSelectionChange: (selection: {
     colorVariantId: string | null;
     color: string | null;
@@ -19,6 +20,7 @@ interface ProductVariantSelectorV2Props {
 export const ProductVariantSelectorV2: React.FC<ProductVariantSelectorV2Props> = ({
   productId,
   basePrice,
+  discount = 0,
   onSelectionChange
 }) => {
   const { variants, loading } = useProductVariantsWithOptions(productId);
@@ -110,8 +112,8 @@ export const ProductVariantSelectorV2: React.FC<ProductVariantSelectorV2Props> =
                 key={variant.color_variant_id}
                 onClick={() => setSelectedColorId(variant.color_variant_id)}
                 className={`relative group flex flex-col items-center ${isSelected
-                    ? 'ring-2 ring-primary ring-offset-2'
-                    : 'ring-1 ring-border hover:ring-2 hover:ring-primary/50'
+                  ? 'ring-2 ring-primary ring-offset-2'
+                  : 'ring-1 ring-border hover:ring-2 hover:ring-primary/50'
                   } rounded-lg p-1 transition-all`}
                 disabled={isOutOfStock}
               >
@@ -156,10 +158,10 @@ export const ProductVariantSelectorV2: React.FC<ProductVariantSelectorV2Props> =
                   onClick={() => !isOutOfStock && setSelectedSize(option.size)}
                   disabled={isOutOfStock}
                   className={`relative px-4 py-2 rounded-md border transition-all ${isSelected
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : isOutOfStock
-                        ? 'bg-muted text-muted-foreground border-muted cursor-not-allowed'
-                        : 'bg-background hover:bg-accent border-border'
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : isOutOfStock
+                      ? 'bg-muted text-muted-foreground border-muted cursor-not-allowed'
+                      : 'bg-background hover:bg-accent border-border'
                     }`}
                 >
                   <span className="font-medium">{option.size}</span>
@@ -187,7 +189,9 @@ export const ProductVariantSelectorV2: React.FC<ProductVariantSelectorV2Props> =
                 {selectedColorVariant.color} - {selectedOption.size}
               </p>
               <p className="text-lg font-bold text-primary">
-                {selectedOption.price} جنيه
+                {discount > 0
+                  ? Math.round(selectedOption.price - (selectedOption.price * discount / 100))
+                  : selectedOption.price} جنيه
               </p>
             </div>
             <div>

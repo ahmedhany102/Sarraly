@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SectionProduct } from '@/types/section';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -9,6 +9,7 @@ import { ChevronLeft, ChevronRight, ShoppingCart, Store, Eye } from 'lucide-reac
 import { toast } from 'sonner';
 import CartDatabase from '@/models/CartDatabase';
 import { useVendorContext } from '@/hooks/useVendorContext';
+import { useBulkProductVariants } from '@/hooks/useBulkProductVariants';
 
 interface RecommendationCarouselProps {
   title: string;
@@ -34,6 +35,20 @@ const RecommendationCarousel: React.FC<RecommendationCarouselProps> = ({
 
   // Get vendor context for vendor-scoped navigation
   const { isVendorContext, vendorSlug } = useVendorContext();
+
+  // Fetch color variants for all products
+  const productIds = useMemo(() => products.map(p => p.id), [products]);
+  const { variantsByProduct } = useBulkProductVariants(productIds);
+
+  // Track selected variant image per product
+  const [selectedImages, setSelectedImages] = useState<Record<string, string>>({});
+
+  // Handle color swatch click - swap image and prevent navigation
+  const handleSwatchClick = (e: React.MouseEvent, productId: string, imageUrl: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedImages(prev => ({ ...prev, [productId]: imageUrl }));
+  };
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
@@ -176,7 +191,7 @@ const RecommendationCarousel: React.FC<RecommendationCarouselProps> = ({
               <CardHeader className="p-0 relative">
                 <AspectRatio ratio={1} className="bg-muted rounded-t-lg overflow-hidden">
                   <img
-                    src={product.image_url || '/placeholder.svg'}
+                    src={selectedImages[product.id] || product.image_url || '/placeholder.svg'}
                     alt={product.name}
                     className="w-full h-full object-cover transition-transform group-hover:scale-105"
                     loading="lazy"
@@ -217,6 +232,45 @@ const RecommendationCarousel: React.FC<RecommendationCarouselProps> = ({
                     </button>
                   )}
                 </div>
+
+                {/* Color Swatches from Variants */}
+                {variantsByProduct[product.id] && variantsByProduct[product.id].length > 0 && (
+                  <div className="flex items-center gap-1 mt-1">
+                    <span className="text-xs text-muted-foreground">الألوان:</span>
+                    <div className="flex gap-1">
+                      {variantsByProduct[product.id].slice(0, 4).map((variant) => {
+                        const isSelected = selectedImages[product.id] === variant.image_url;
+                        return (
+                          <button
+                            key={variant.id}
+                            onClick={(e) => handleSwatchClick(e, product.id, variant.image_url || product.image_url || '')}
+                            className={`w-5 h-5 rounded-full overflow-hidden transition-all ${isSelected
+                                ? 'ring-2 ring-primary ring-offset-1 scale-110'
+                                : 'border border-gray-300 hover:scale-110'
+                              }`}
+                            title={variant.label}
+                          >
+                            {variant.image_url ? (
+                              <img
+                                src={variant.image_url}
+                                alt={variant.label}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div
+                                className="w-full h-full"
+                                style={{ backgroundColor: variant.hex_code || '#ccc' }}
+                              />
+                            )}
+                          </button>
+                        );
+                      })}
+                      {variantsByProduct[product.id].length > 4 && (
+                        <span className="text-xs text-muted-foreground">+{variantsByProduct[product.id].length - 4}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </CardContent>
 
               {/* Price + Button anchored to bottom together */}

@@ -517,6 +517,7 @@ const ProductDetails = () => {
               <ProductVariantSelectorV2
                 productId={product.id}
                 basePrice={product.price || 0}
+                discount={product.discount || 0}
                 onSelectionChange={handleVariantSelectionChange}
               />
             )}

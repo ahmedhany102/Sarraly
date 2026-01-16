@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { useVendorProducts, useVendorCategories } from '@/hooks/useVendors';
@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import ProductCard from '@/components/ProductCard';
 import { Store, Package, ArrowRight } from 'lucide-react';
 import { useBestSellers, useLastViewed } from '@/hooks/useSections';
+import { useBulkProductVariants } from '@/hooks/useBulkProductVariants';
 import { ProductCarousel } from '@/components/sections';
 import VendorAdCarousel from '@/components/vendor/VendorAdCarousel';
 import VendorStoreHeader from '@/components/vendor/VendorStoreHeader';
@@ -37,6 +38,10 @@ const StorePage = () => {
   // Vendor-specific sections - NO VENDORID PARAMS, read from context
   const { products: bestSellers, loading: bestSellersLoading } = useBestSellers(12);
   const { products: lastViewed, loading: lastViewedLoading } = useLastViewed(10);
+
+  // Fetch color variants for all products
+  const productIds = useMemo(() => products.map(p => p.id), [products]);
+  const { variantsByProduct } = useBulkProductVariants(productIds);
 
   // Check if filters are active (hides promotional sections)
   const hasFiltersActive = !!(searchQuery || selectedCategory);
@@ -154,6 +159,7 @@ const StorePage = () => {
                 key={product.id}
                 product={product}
                 onAddToCart={handleAddToCart}
+                variants={variantsByProduct[product.id] || []}
               />
             ))}
           </div>
