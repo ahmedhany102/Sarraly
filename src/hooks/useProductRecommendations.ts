@@ -58,6 +58,9 @@ export function useSimilarProducts(productId: string | undefined, limit: number 
             stock,
             inventory,
             vendor_id,
+            user_id,
+            is_free_shipping,
+            is_fast_shipping,
             vendors!inner (
               name,
               logo_url,
@@ -93,7 +96,12 @@ export function useSimilarProducts(productId: string | undefined, limit: number 
           inventory: p.inventory ?? 0,
           vendor_name: p.vendors?.name || null,
           vendor_slug: p.vendors?.slug || null,
-          vendor_logo_url: p.vendors?.logo_url || null
+          vendor_logo_url: p.vendors?.logo_url || null,
+          // Shipping fields for cart
+          user_id: p.user_id || null,
+          vendor_id: p.vendor_id || null,
+          is_free_shipping: p.is_free_shipping || false,
+          is_fast_shipping: p.is_fast_shipping || false
         }));
 
         setProducts(mappedProducts);
@@ -142,6 +150,9 @@ export function useMoreFromVendor(productId: string | undefined, productVendorId
             stock,
             inventory,
             vendor_id,
+            user_id,
+            is_free_shipping,
+            is_fast_shipping,
             vendors!inner (
               name,
               logo_url,
@@ -170,7 +181,12 @@ export function useMoreFromVendor(productId: string | undefined, productVendorId
           inventory: p.inventory ?? 0,
           vendor_name: p.vendors?.name || null,
           vendor_slug: p.vendors?.slug || null,
-          vendor_logo_url: p.vendors?.logo_url || null
+          vendor_logo_url: p.vendors?.logo_url || null,
+          // Shipping fields for cart
+          user_id: p.user_id || null,
+          vendor_id: p.vendor_id || null,
+          is_free_shipping: p.is_free_shipping || false,
+          is_fast_shipping: p.is_fast_shipping || false
         }));
 
         setProducts(mappedProducts);

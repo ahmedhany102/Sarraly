@@ -47,7 +47,7 @@ export const useProductFetching = () => {
       // Fetch products without authentication requirement
       const { data, error } = await supabase
         .from('products')
-        .select('id, name, description, price, main_image, images, colors, sizes, discount, featured, stock, inventory, status, category_id, vendor_id')
+        .select('id, name, description, price, main_image, images, colors, sizes, discount, featured, stock, inventory, status, category_id, vendor_id, user_id, is_free_shipping')
         .order('created_at', { ascending: false })
         .range(0, 49); // Limit to 50 products to reduce egress
 

@@ -10,13 +10,16 @@ export interface CartItem {
   imageUrl?: string;
   size?: string;
   color?: string;
+  // Added for shipping calculation
+  vendor_id?: string | null;
+  is_free_shipping?: boolean;
 }
 
 class CartDatabase {
   private static instance: CartDatabase;
   private STORAGE_KEY = 'cart';
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): CartDatabase {
     if (!CartDatabase.instance) {
@@ -54,8 +57,20 @@ class CartDatabase {
           quantity: quantity,
           imageUrl: imageUrl,
           size: size,
-          color: color
+          color: color,
+          // Store shipping-related fields
+          vendor_id: product.vendor_id || product.user_id || null,
+          is_free_shipping: product.is_free_shipping || false,
         };
+
+        // Debug: Log shipping fields
+        console.log(`🛒 Adding to cart: ${product.name}`);
+        console.log(`   - product.vendor_id: ${product.vendor_id || 'null'}`);
+        console.log(`   - product.user_id: ${product.user_id || 'null'}`);
+        console.log(`   - product.is_free_shipping: ${product.is_free_shipping}`);
+        console.log(`   - Stored vendor_id: ${newItem.vendor_id || 'null'}`);
+        console.log(`   - Stored is_free_shipping: ${newItem.is_free_shipping}`);
+
         cartItems.push(newItem);
       }
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(cartItems));

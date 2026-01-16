@@ -65,15 +65,30 @@ const RecommendationCarousel: React.FC<RecommendationCarouselProps> = ({
     e.stopPropagation();
     try {
       const cartDb = CartDatabase.getInstance();
-      await cartDb.addToCart({
+
+      // CRITICAL: Include ALL shipping-related fields for proper shipping calculation
+      const productForCart = {
         id: product.id,
         name: product.name,
         price: product.discount && product.discount > 0
           ? product.price - (product.price * product.discount / 100)
           : product.price,
         mainImage: product.image_url,
-        inventory: 1,
-      }, '', '', 1);
+        inventory: product.inventory ?? product.stock ?? 1,
+        // SHIPPING FIELDS - Required for shipping calculation
+        user_id: (product as any).user_id || null,
+        vendor_id: (product as any).vendor_id || null,
+        is_free_shipping: product.is_free_shipping || false,
+      };
+
+      console.log('🛒 RecommendationCarousel adding to cart:', {
+        name: productForCart.name,
+        user_id: productForCart.user_id,
+        vendor_id: productForCart.vendor_id,
+        is_free_shipping: productForCart.is_free_shipping
+      });
+
+      await cartDb.addToCart(productForCart as any, '', '', 1);
       toast.success('تمت الإضافة إلى السلة');
     } catch (error) {
       console.error('Error adding to cart:', error);
@@ -155,7 +170,7 @@ const RecommendationCarousel: React.FC<RecommendationCarouselProps> = ({
           return (
             <Card
               key={product.id}
-              className="min-w-[180px] max-w-[180px] min-h-[320px] flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow group flex flex-col"
+              className="min-w-[180px] max-w-[180px] min-h-[340px] flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow group flex flex-col"
               onClick={() => handleProductClick(product.id)}
             >
               <CardHeader className="p-0 relative">
@@ -184,21 +199,26 @@ const RecommendationCarousel: React.FC<RecommendationCarouselProps> = ({
                 )}
               </CardHeader>
 
-              <CardContent className="p-3 pb-2 flex-grow">
-                <h4 className="font-medium text-sm line-clamp-2 mb-1 group-hover:text-primary transition-colors">
+              <CardContent className="p-3 pb-2 flex-grow flex flex-col">
+                {/* Title - Fixed 2-line height */}
+                <h4 className="font-medium text-sm line-clamp-2 mb-1 min-h-[40px] group-hover:text-primary transition-colors">
                   {product.name}
                 </h4>
 
-                {product.vendor_name && product.vendor_slug && (
-                  <button
-                    onClick={(e) => handleVendorClick(e, product.vendor_slug)}
-                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors mb-2"
-                  >
-                    <Store className="w-3 h-3" />
-                    <span>{product.vendor_name}</span>
-                  </button>
-                )}
+                {/* Vendor - Fixed height container */}
+                <div className="min-h-[24px] mb-2">
+                  {product.vendor_name && product.vendor_slug && (
+                    <button
+                      onClick={(e) => handleVendorClick(e, product.vendor_slug)}
+                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      <Store className="w-3 h-3" />
+                      <span>{product.vendor_name}</span>
+                    </button>
+                  )}
+                </div>
 
+                {/* Price - Always shown */}
                 <div className="flex items-center gap-2">
                   <span className="text-primary font-bold">{discountedPrice.toFixed(0)} ج.م</span>
                   {product.discount && product.discount > 0 && (

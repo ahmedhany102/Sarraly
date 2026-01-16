@@ -11,7 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import CartDatabase, { CartItem } from '@/models/CartDatabase';
 import OrderDatabase from '@/models/OrderDatabase';
 import OrderForm from '@/components/OrderForm';
-import { Trash2, ShoppingCart, CircleDollarSign, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { Trash2, ShoppingCart, CircleDollarSign, ArrowLeft, ShieldCheck, Truck } from 'lucide-react';
 import { ApplyCouponService } from '@/services/applyCouponService';
 import { useVendorContext } from '@/hooks/useVendorContext';
 import { useVendorCategories } from '@/hooks/useVendors';
@@ -211,11 +211,9 @@ const Cart = () => {
     setCouponError('');
   };
 
-  // Calculate cart totals with coupon discount
+  // Calculate cart subtotal only (shipping calculated in OrderForm)
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shippingFee = subtotal > 0 ? 25 : 0;
   const discountAmount = appliedCoupon ? appliedCoupon.discount : 0;
-  const total = subtotal + shippingFee - discountAmount;
 
   return (
     <Layout hideGlobalHeader={isVendorContext} hideFooter={isVendorContext}>
@@ -355,14 +353,18 @@ const Cart = () => {
                         <span>Subtotal</span>
                         <span className="font-medium">{subtotal.toFixed(2)} EGP</span>
                       </div>
-                      <div className="flex justify-between py-2">
-                        <span>Shipping Fee</span>
-                        <span className="font-medium">{shippingFee.toFixed(2)} EGP</span>
+
+                      <div className="flex justify-between py-2 text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Truck className="w-4 h-4" />
+                          Shipping
+                        </span>
+                        <span className="text-sm">Calculated at checkout</span>
                       </div>
                       <Separator />
                       <div className="flex justify-between py-2">
-                        <span className="font-bold">Total</span>
-                        <span className="font-bold">{total.toFixed(2)} EGP</span>
+                        <span className="font-bold">Subtotal</span>
+                        <span className="font-bold">{subtotal.toFixed(2)} EGP</span>
                       </div>
 
                       <Button
@@ -408,7 +410,7 @@ const Cart = () => {
                         color: item.color || '-',
                         size: item.size || '-'
                       }))}
-                      total={total}
+                      subtotal={subtotal}
                       onOrderComplete={handleOrderComplete}
                       appliedCoupon={appliedCoupon}
                     />
@@ -441,9 +443,12 @@ const Cart = () => {
                         <span>Subtotal</span>
                         <span>{subtotal.toFixed(2)} EGP</span>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Shipping</span>
-                        <span>{shippingFee.toFixed(2)} EGP</span>
+                      <div className="flex justify-between text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Truck className="w-3 h-3" />
+                          Shipping
+                        </span>
+                        <span className="text-xs">See form below</span>
                       </div>
                       {appliedCoupon && (
                         <div className="flex justify-between text-sm text-primary">
@@ -451,11 +456,6 @@ const Cart = () => {
                           <span>-{discountAmount.toFixed(2)} EGP</span>
                         </div>
                       )}
-                      <Separator />
-                      <div className="flex justify-between font-bold">
-                        <span>Total</span>
-                        <span>{total.toFixed(2)} EGP</span>
-                      </div>
                     </div>
 
                     {/* Coupon Section */}

@@ -210,6 +210,28 @@ const OrderDetailsDialog: React.FC<{
                     </div>
                   );
                 })}
+
+                {/* Order Totals Section */}
+                {orderInfo && (
+                  <div className="border-t pt-4 mt-4 space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>إجمالي المنتجات:</span>
+                      <span>{(orderInfo as any).subtotal || items.reduce((sum, item) => sum + item.total_price, 0)} ج.م</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>رسوم الشحن:</span>
+                      <span className={(orderInfo as any).shipping_cost === 0 ? 'text-green-600' : ''}>
+                        {(orderInfo as any).shipping_cost !== undefined
+                          ? ((orderInfo as any).shipping_cost === 0 ? 'مجاني' : `${(orderInfo as any).shipping_cost} ج.م`)
+                          : 'غير متوفر'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between font-bold text-base border-t pt-2">
+                      <span>الإجمالي النهائي:</span>
+                      <span>{orderInfo.total_amount} ج.م</span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

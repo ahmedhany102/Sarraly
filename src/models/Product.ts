@@ -30,6 +30,7 @@ export interface Product {
   stock?: number;
   inventory?: number;
   user_id?: string;
+  vendor_id?: string | null;
   createdAt?: string;
   updatedAt?: string;
   created_at?: string;

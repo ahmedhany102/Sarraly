@@ -77,6 +77,8 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({
     e.stopPropagation();
     try {
       const cartDb = CartDatabase.getInstance();
+
+      // CRITICAL: Include ALL shipping-related fields for proper shipping calculation
       const productForCart = {
         id: product.id,
         name: product.name,
@@ -84,8 +86,20 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({
           ? product.price - (product.price * product.discount / 100)
           : product.price,
         mainImage: product.image_url,
-        inventory: 1
+        inventory: (product as any).inventory ?? (product as any).stock ?? 1,
+        // SHIPPING FIELDS - Required for shipping calculation
+        user_id: (product as any).user_id || null,
+        vendor_id: (product as any).vendor_id || null,
+        is_free_shipping: product.is_free_shipping || false,
       };
+
+      console.log('🛒 ProductCarousel adding to cart:', {
+        name: productForCart.name,
+        user_id: productForCart.user_id,
+        vendor_id: productForCart.vendor_id,
+        is_free_shipping: productForCart.is_free_shipping
+      });
+
       await cartDb.addToCart(productForCart as any, '', '', 1);
       toast.success('تم إضافة المنتج إلى السلة');
     } catch (error) {
@@ -197,7 +211,7 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({
       {/* Products Carousel */}
       <div
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto scrollbar-hide pb-2"
+        className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 items-stretch"
         style={{ scrollSnapType: 'x mandatory' }}
       >
         {products.map((product) => {
@@ -217,7 +231,7 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({
           return (
             <Card
               key={product.id}
-              className="min-w-[180px] max-w-[180px] flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow group"
+              className="min-w-[180px] max-w-[180px] min-h-[340px] flex flex-col flex-shrink-0 cursor-pointer hover:shadow-lg transition-shadow group"
               style={{ scrollSnapAlign: 'start' }}
               onClick={() => handleProductClick(product.id)}
             >
@@ -259,27 +273,14 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({
                 )}
               </div>
 
-              <CardContent className="p-3">
-                {/* Product Name */}
+              <CardContent className="p-3 flex-grow flex flex-col">
+                {/* Product Name - Fixed 2-line height */}
                 <h3 className="font-medium text-sm line-clamp-2 mb-2 min-h-[40px]">
                   {product.name}
                 </h3>
 
-                {/* Rating - only show if rating > 0 */}
-                {Number(product.rating || product.average_rating || 0) > 0 && (
-                  <div className="flex items-center gap-1 mb-1">
-                    <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                    <span className="text-xs text-muted-foreground">
-                      {Number(product.rating || product.average_rating || 0).toFixed(1)}
-                      {Number(product.reviews_count || 0) > 0 && (
-                        <span className="text-muted-foreground/70"> ({product.reviews_count})</span>
-                      )}
-                    </span>
-                  </div>
-                )}
-
-                {/* Shipping Badges */}
-                <div className="flex flex-wrap gap-1 mb-1">
+                {/* Shipping Badges - Fixed height container */}
+                <div className="flex flex-wrap gap-1 mb-1 min-h-[22px]">
                   {product.is_free_shipping && (
                     <span className="inline-flex items-center text-xs text-primary font-medium">
                       🚚 شحن مجاني
@@ -292,7 +293,7 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({
                   )}
                 </div>
 
-                {/* Price */}
+                {/* Price - Always shown */}
                 <div className="flex items-center gap-2 mb-2">
                   <span className="font-bold text-primary">
                     {finalPrice.toFixed(0)} ج.م
@@ -304,18 +305,20 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({
                   )}
                 </div>
 
-                {/* Vendor */}
-                {product.vendor_name && (
-                  <button
-                    onClick={(e) => handleVendorClick(e, product.vendor_slug)}
-                    className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
-                  >
-                    بواسطة: {product.vendor_name}
-                  </button>
-                )}
+                {/* Vendor - Fixed height container to reserve space */}
+                <div className="min-h-[20px]">
+                  {product.vendor_name && (
+                    <button
+                      onClick={(e) => handleVendorClick(e, product.vendor_slug)}
+                      className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+                    >
+                      بواسطة: {product.vendor_name}
+                    </button>
+                  )}
+                </div>
               </CardContent>
 
-              <CardFooter className="p-3 pt-0">
+              <CardFooter className="p-3 pt-0 mt-auto">
                 <Button
                   onClick={(e) => handleAddToCart(e, product)}
                   className={`w-full text-sm ${isOutOfStock ? 'bg-muted text-muted-foreground cursor-not-allowed' : 'bg-primary hover:bg-primary/90 text-primary-foreground'}`}

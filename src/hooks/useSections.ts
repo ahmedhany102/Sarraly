@@ -77,7 +77,9 @@ export function useSectionProducts(sectionId: string, limit: number = 12) {
           vendor_name: p.vendor_name || null,
           vendor_slug: p.vendor_slug || null,
           vendor_logo_url: p.vendor_logo_url || null,
-          // Badge and rating fields
+          // Shipping fields for cart
+          user_id: p.user_id || null,
+          vendor_id: p.vendor_id || null,
           is_free_shipping: p.is_free_shipping || false,
           is_fast_shipping: p.is_fast_shipping || false,
           average_rating: p.average_rating || 0,
@@ -139,6 +141,7 @@ export function useBestSellers(limit: number = 12) {
             stock,
             inventory,
             vendor_id,
+            user_id,
             is_free_shipping,
             is_fast_shipping,
             vendors!inner (
@@ -173,6 +176,9 @@ export function useBestSellers(limit: number = 12) {
           vendor_name: p.vendors?.name || null,
           vendor_slug: p.vendors?.slug || null,
           vendor_logo_url: p.vendors?.logo_url || null,
+          // Shipping fields for cart
+          user_id: p.user_id || null,
+          vendor_id: p.vendor_id || null,
           is_free_shipping: p.is_free_shipping || false,
           is_fast_shipping: p.is_fast_shipping || false,
           average_rating: p.rating || 0,
@@ -233,6 +239,7 @@ export function useHotDeals(limit: number = 12) {
             stock,
             inventory,
             vendor_id,
+            user_id,
             is_free_shipping,
             is_fast_shipping,
             vendors!inner (
@@ -267,6 +274,9 @@ export function useHotDeals(limit: number = 12) {
           vendor_name: p.vendors?.name || null,
           vendor_slug: p.vendors?.slug || null,
           vendor_logo_url: p.vendors?.logo_url || null,
+          // Shipping fields for cart
+          user_id: p.user_id || null,
+          vendor_id: p.vendor_id || null,
           is_free_shipping: p.is_free_shipping || false,
           is_fast_shipping: p.is_fast_shipping || false,
           average_rating: p.rating || 0,
@@ -338,7 +348,9 @@ export function useLastViewed(limit: number = 10) {
           vendor_name: p.vendor_name || null,
           vendor_slug: p.vendor_slug || null,
           vendor_logo_url: p.vendor_logo_url || null,
-          // Badge and rating fields
+          // Shipping fields for cart
+          user_id: p.user_id || null,
+          vendor_id: p.vendor_id || null,
           is_free_shipping: p.is_free_shipping || false,
           is_fast_shipping: p.is_fast_shipping || false,
           average_rating: p.average_rating || 0,

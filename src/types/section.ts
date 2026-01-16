@@ -27,7 +27,9 @@ export interface SectionProduct {
   vendor_name: string | null;
   vendor_slug: string | null;
   vendor_logo_url: string | null;
-  // Shipping badge fields
+  // Shipping fields - REQUIRED for cart
+  user_id?: string | null;
+  vendor_id?: string | null;
   is_free_shipping?: boolean;
   is_fast_shipping?: boolean;
   // Rating fields
