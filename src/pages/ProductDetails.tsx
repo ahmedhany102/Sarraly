@@ -190,30 +190,46 @@ const ProductDetails = () => {
   const handleVariantSelectionChange = useCallback((selection: VariantSelection) => {
     setVariantSelection(selection);
 
-    // Update gallery based on variant selection
+    // Only update gallery if variant has its own gallery images
     if (selection.galleryUrls && selection.galleryUrls.length > 0) {
-      // Use variant-specific gallery
+      // Use variant-specific gallery (replaces main gallery)
       setCurrentGallery(selection.galleryUrls);
       setGalleryIndex(0);
       setActiveImage(selection.galleryUrls[0]);
     } else if (selection.image) {
-      // Fall back to single variant image + product images
-      const combined = [selection.image, ...(product?.images || []).filter(img => img !== selection.image)];
-      setCurrentGallery(combined);
-      setGalleryIndex(0);
+      // Variant has a single image - just set it as active, don't modify the gallery
+      // The gallery should stay as the main product images
       setActiveImage(selection.image);
+      // Try to find and select this image in current gallery
+      const idx = currentGallery.indexOf(selection.image);
+      if (idx >= 0) {
+        setGalleryIndex(idx);
+      }
     }
-  }, [product?.images]);
+    // If variant has no images at all, don't change anything
+  }, [currentGallery]);
 
   // Initialize gallery when product loads
   useEffect(() => {
     if (product) {
-      const initialGallery = product.images && product.images.length > 0
-        ? product.images
-        : (product.main_image ? [product.main_image] : []);
+      // Combine main_image and images array, removing duplicates
+      const allImages: string[] = [];
+      if (product.main_image) {
+        allImages.push(product.main_image);
+      }
+      if (product.images && Array.isArray(product.images)) {
+        product.images.forEach((img: string) => {
+          if (img && !allImages.includes(img)) {
+            allImages.push(img);
+          }
+        });
+      }
+
+      const initialGallery = allImages.length > 0 ? allImages : ['/placeholder.svg'];
       setCurrentGallery(initialGallery);
       if (initialGallery.length > 0) {
         setActiveImage(initialGallery[0]);
+        setGalleryIndex(0);
       }
     }
   }, [product]);
@@ -457,7 +473,7 @@ const ProductDetails = () => {
               <div className="flex overflow-x-auto gap-2 pb-2">
                 {currentGallery.map((image, index) => (
                   <div
-                    key={index}
+                    key={`thumb-${index}-${image.slice(-20)}`}
                     className={`border rounded cursor-pointer flex-shrink-0 w-16 h-16 overflow-hidden ${galleryIndex === index ? 'ring-2 ring-primary' : ''
                       }`}
                     onClick={() => {
@@ -655,7 +671,7 @@ const ProductDetails = () => {
           <ProductReviews productId={product.id} />
         </div>
       </div>
-    </Layout>
+    </Layout >
   );
 };
 
