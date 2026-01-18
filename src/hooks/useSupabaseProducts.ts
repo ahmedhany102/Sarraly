@@ -46,7 +46,7 @@ export const useSupabaseProducts = () => {
       const { data, error } = await supabase.rpc('get_products_with_vendor', {
         _category_id: null,
         _search_query: null,
-        _limit: 20 // 🔴 CRITICAL FIX: was 1000, reduced to prevent egress overuse
+        _limit: 100 // Increased from 20 to ensure all products are included in listings
       });
 
       LoadingFallback.clearTimeout('product-fetch');
