@@ -55,7 +55,7 @@ class UserDatabase {
       if (this.users.length === 0) {
         this.createDefaultAdmin();
       }
-      
+
       // Also sync with localStorage for backward compatibility
       this.syncWithLocalStorage();
     };
@@ -79,11 +79,22 @@ class UserDatabase {
   }
 
   private createDefaultAdmin(): void {
+    // SECURITY: Admin credentials must come from environment variables
+    // Never hardcode sensitive credentials in source code
+    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@example.com';
+    const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'ChangeThisPassword123!';
+    const adminName = import.meta.env.VITE_ADMIN_NAME || 'Admin';
+
+    // Log warning if using default credentials in production
+    if (!import.meta.env.VITE_ADMIN_EMAIL || !import.meta.env.VITE_ADMIN_PASSWORD) {
+      console.warn('⚠️ SECURITY WARNING: Admin credentials not set in environment variables. Using defaults.');
+    }
+
     const adminUser: User = {
       id: 'admin-1',
-      name: 'Ahmed Hany',
-      email: 'ahmedhanyseifeldien@gmail.com',
-      password: 'Ahmedhany11*',
+      name: adminName,
+      email: adminEmail,
+      password: adminPassword,
       role: 'ADMIN',
       createdAt: new Date().toISOString(),
       lastLogin: new Date().toISOString(),
@@ -167,7 +178,7 @@ class UserDatabase {
 
       this.users.push(newUser);
       this.saveUsers();
-      
+
       // Return without password
       const { password, ...userWithoutPassword } = newUser;
       return userWithoutPassword as User;
@@ -206,7 +217,7 @@ class UserDatabase {
 
       this.users.push(newUser);
       this.saveUsers();
-      
+
       // Return without password
       const { password: _, ...userWithoutPassword } = newUser;
       return userWithoutPassword as User;
@@ -290,7 +301,7 @@ class UserDatabase {
           ...this.users[userIndex],
           ...updates
         };
-        
+
         // Also update in localStorage for backward compatibility
         const mockUsers = JSON.parse(localStorage.getItem("mock_users") || "[]");
         const mockUserIndex = mockUsers.findIndex((u: any) => u.id === id);
@@ -337,10 +348,10 @@ class UserDatabase {
         console.error('Cannot delete super admin user');
         return false;
       }
-      
+
       const initialLength = this.users.length;
       this.users = this.users.filter(u => u.id !== id);
-      
+
       if (this.users.length !== initialLength) {
         this.saveUsers();
         return true;
