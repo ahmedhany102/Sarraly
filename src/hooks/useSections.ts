@@ -149,11 +149,13 @@ export function useBestSellers(limit: number = 12) {
             vendors!inner (
               name,
               logo_url,
-              slug
+              slug,
+              status
             )
           `)
           .eq('is_best_seller', true)
           .in('status', ['active', 'approved'])
+          .eq('vendors.status', 'active') // Filter out products from inactive vendors
           .order('created_at', { ascending: false })
           .limit(limit);
 
@@ -249,11 +251,13 @@ export function useHotDeals(limit: number = 12) {
             vendors!inner (
               name,
               logo_url,
-              slug
+              slug,
+              status
             )
           `)
           .eq('is_hot_deal', true)
           .in('status', ['active', 'approved'])
+          .eq('vendors.status', 'active') // Filter out products from inactive vendors
           .order('created_at', { ascending: false })
           .limit(limit);
 

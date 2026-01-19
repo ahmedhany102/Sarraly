@@ -64,12 +64,14 @@ export function useSimilarProducts(productId: string | undefined, limit: number 
             vendors!inner (
               name,
               logo_url,
-              slug
+              slug,
+              status
             )
           `)
           .eq('category_id', product.category_id)
           .neq('id', productId)
           .in('status', ['active', 'approved'])
+          .eq('vendors.status', 'active') // Filter out products from inactive vendors
           .limit(limit);
 
         // IN VENDOR CONTEXT: Only show products from same vendor
@@ -156,12 +158,14 @@ export function useMoreFromVendor(productId: string | undefined, productVendorId
             vendors!inner (
               name,
               logo_url,
-              slug
+              slug,
+              status
             )
           `)
           .eq('vendor_id', productVendorId)
           .neq('id', productId)
           .in('status', ['active', 'approved'])
+          .eq('vendors.status', 'active') // Filter out products from inactive vendors
           .limit(limit);
 
         if (error) {

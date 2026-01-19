@@ -121,11 +121,18 @@ const ProductDetails = () => {
         LoadingFallback.clearTimeout('product-details');
 
         if (rpcError || !rpcData || rpcData.length === 0) {
-          // Fallback to direct query
+          // Fallback to direct query with vendor status check
           const { data, error } = await supabase
             .from('products')
-            .select('*')
+            .select(`
+              *,
+              vendors!inner (
+                id,
+                status
+              )
+            `)
             .eq('id', id)
+            .eq('vendors.status', 'active') // Only show if vendor is active
             .maybeSingle();
 
           if (error || !data) {

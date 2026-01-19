@@ -150,8 +150,16 @@ export const useSupabaseProducts = () => {
       console.log('✅ Cleaned products:', cleanedProducts.length);
       console.log('📊 Sample product structure:', cleanedProducts[0]);
 
-      // === FIX: Use cleanedProducts to ensure type correctness ===
-      setProducts(cleanedProducts);
+      // CRITICAL: Filter out products from inactive vendors
+      // When vendor is inactive, the RPC returns null for vendor_name/vendor_slug
+      const activeVendorProducts = cleanedProducts.filter(product =>
+        product.vendor_name && product.vendor_slug
+      );
+
+      console.log('🔒 Products from active vendors:', activeVendorProducts.length);
+
+      // === FIX: Use filtered products to ensure only active vendor products show ===
+      setProducts(activeVendorProducts);
 
     } catch (error: any) {
       LoadingFallback.clearTimeout('product-fetch');
