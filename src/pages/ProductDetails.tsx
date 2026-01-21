@@ -81,6 +81,11 @@ const ProductDetails = () => {
     galleryUrls: []
   });
 
+  // Touch swipe support for mobile
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const minSwipeDistance = 50;
+
   // Check if user came from a vendor store
   const isFromVendorStore = location.pathname.includes('/store/') ||
     (location.state as any)?.fromVendor === true;
@@ -194,31 +199,95 @@ const ProductDetails = () => {
     checkVariants();
   }, [id]);
 
+  // Store reference to original product gallery for fallback
+  const [mainProductGallery, setMainProductGallery] = useState<string[]>([]);
+
+  // STRICT URL validation - filters out dirty data like [""], ["null"], short strings
+  const isValidImageUrl = (url: unknown): url is string => {
+    if (!url || typeof url !== 'string') return false;
+    const trimmed = url.trim();
+    return (
+      trimmed.length > 10 && // Must be a real URL, not " " or "http"
+      !trimmed.includes('undefined') &&
+      !trimmed.includes('null') &&
+      (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('/'))
+    );
+  };
+
   const handleVariantSelectionChange = useCallback((selection: VariantSelection) => {
     setVariantSelection(selection);
 
-    // Only update gallery if variant has its own gallery images
-    if (selection.galleryUrls && selection.galleryUrls.length > 0) {
-      // Use variant-specific gallery (replaces main gallery)
-      setCurrentGallery(selection.galleryUrls);
+    console.log('🎨 Variant selection changed:', {
+      color: selection.color,
+      galleryUrls: selection.galleryUrls,
+      image: selection.image
+    });
+
+    // STRICT filter - only accept valid image URLs
+    const validGalleryUrls = (selection.galleryUrls || []).filter(isValidImageUrl);
+    const hasValidSingleImage = isValidImageUrl(selection.image);
+
+    console.log('🔍 Validation result:', {
+      rawUrls: selection.galleryUrls?.length || 0,
+      validUrls: validGalleryUrls.length,
+      hasValidSingleImage,
+      mainGalleryAvailable: mainProductGallery.length
+    });
+
+    // CRITICAL FIX: Only replace gallery if variant has MORE or EQUAL images
+    // Otherwise, keep main gallery and just highlight the variant's image
+    if (validGalleryUrls.length > 0 && validGalleryUrls.length >= mainProductGallery.length) {
+      // Variant has a rich gallery - use it
+      console.log('🖼️ Using variant gallery (has more images):', validGalleryUrls);
+      setCurrentGallery(validGalleryUrls);
       setGalleryIndex(0);
-      setActiveImage(selection.galleryUrls[0]);
-    } else if (selection.image) {
-      // Variant has a single image - just set it as active, don't modify the gallery
-      // The gallery should stay as the main product images
+      setActiveImage(validGalleryUrls[0]);
+    } else if (hasValidSingleImage && selection.image) {
+      // Variant has image(s) but fewer than main gallery - keep main gallery, just highlight variant image
+      console.log('🖼️ Variant has image, keeping main gallery, highlighting variant');
+      // Ensure main gallery is shown
+      if (mainProductGallery.length > 0 && currentGallery.length < mainProductGallery.length) {
+        setCurrentGallery(mainProductGallery);
+      }
+      // Set variant image as active
       setActiveImage(selection.image);
-      // Try to find and select this image in current gallery
-      const idx = currentGallery.indexOf(selection.image);
+      // Try to find this image in main gallery
+      const idx = mainProductGallery.indexOf(selection.image);
       if (idx >= 0) {
         setGalleryIndex(idx);
+      } else {
+        setGalleryIndex(0); // Default to first
       }
+    } else if (validGalleryUrls.length > 0) {
+      // Variant has some gallery images but less than main - still show main, but set first variant image as active
+      console.log('🖼️ Variant has fewer images, keeping main gallery');
+      if (mainProductGallery.length > 0) {
+        setCurrentGallery(mainProductGallery);
+      }
+      setActiveImage(validGalleryUrls[0]);
+    } else {
+      // No valid variant images - just ensure main gallery is visible
+      console.log('⚠️ No valid variant images, ensuring main gallery');
+      if (mainProductGallery.length > 0 && currentGallery.length === 0) {
+        setCurrentGallery(mainProductGallery);
+        setGalleryIndex(0);
+        setActiveImage(mainProductGallery[0]);
+      }
+      // Don't change anything if main gallery is already showing
     }
-    // If variant has no images at all, don't change anything
-  }, [currentGallery]);
+  }, [mainProductGallery, currentGallery]);
 
   // Initialize gallery when product loads
   useEffect(() => {
     if (product) {
+      // DEBUG: Log product images data
+      console.log('🖼️ Product images debug:', {
+        main_image: product.main_image,
+        images: product.images,
+        images_type: typeof product.images,
+        images_length: Array.isArray(product.images) ? product.images.length : 'not array'
+      });
+
       // Combine main_image and images array, removing duplicates
       const allImages: string[] = [];
       if (product.main_image) {
@@ -232,12 +301,24 @@ const ProductDetails = () => {
         });
       }
 
-      const initialGallery = allImages.length > 0 ? allImages : ['/placeholder.svg'];
-      setCurrentGallery(initialGallery);
-      if (initialGallery.length > 0) {
-        setActiveImage(initialGallery[0]);
+      console.log('🖼️ Final gallery:', allImages);
+
+      // Filter valid images only (remove null, undefined, empty strings)
+      // Use strict validation to filter out dirty data like [""] or ["null"]
+      const initialGallery = allImages.filter(isValidImageUrl);
+
+      const finalGallery = initialGallery.length > 0 ? initialGallery : ['/placeholder.svg'];
+
+      // Save main product gallery for fallback when variant has no images
+      setMainProductGallery(finalGallery);
+      setCurrentGallery(finalGallery);
+
+      if (finalGallery.length > 0) {
+        setActiveImage(finalGallery[0]);
         setGalleryIndex(0);
       }
+
+      console.log('✅ Gallery initialized with', finalGallery.length, 'valid images');
     }
   }, [product]);
 
@@ -258,6 +339,29 @@ const ProductDetails = () => {
 
   const handleImageClick = (imageUrl: string) => {
     setActiveImage(imageUrl);
+  };
+
+  // Touch swipe handlers for mobile
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      goToNextImage();
+    } else if (isRightSwipe) {
+      goToPrevImage();
+    }
   };
 
   // Calculate stock and price
@@ -439,7 +543,12 @@ const ProductDetails = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Product Images */}
           <div>
-            <div className="mb-4 border rounded overflow-hidden relative">
+            <div
+              className="mb-4 border rounded overflow-hidden relative touch-pan-y"
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEnd}
+            >
               <AspectRatio ratio={1}>
                 <img
                   src={activeImage}
@@ -475,29 +584,31 @@ const ProductDetails = () => {
               )}
             </div>
 
-            {/* Thumbnail Gallery */}
-            {currentGallery.length > 0 && (
+            {/* Thumbnail Gallery - Filter valid images only */}
+            {currentGallery.filter(isValidImageUrl).length > 0 && (
               <div className="flex overflow-x-auto gap-2 pb-2">
-                {currentGallery.map((image, index) => (
-                  <div
-                    key={`thumb-${index}-${image.slice(-20)}`}
-                    className={`border rounded cursor-pointer flex-shrink-0 w-16 h-16 overflow-hidden ${galleryIndex === index ? 'ring-2 ring-primary' : ''
-                      }`}
-                    onClick={() => {
-                      setGalleryIndex(index);
-                      setActiveImage(image);
-                    }}
-                  >
-                    <img
-                      src={image}
-                      alt={`Thumbnail ${index + 1}`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/placeholder.svg';
+                {currentGallery
+                  .filter(isValidImageUrl)
+                  .map((image, index) => (
+                    <div
+                      key={`thumb-${index}-${image.slice(-20)}`}
+                      className={`border rounded cursor-pointer flex-shrink-0 w-16 h-16 overflow-hidden ${galleryIndex === index ? 'ring-2 ring-primary' : ''
+                        }`}
+                      onClick={() => {
+                        setGalleryIndex(index);
+                        setActiveImage(image);
                       }}
-                    />
-                  </div>
-                ))}
+                    >
+                      <img
+                        src={image}
+                        alt={`Thumbnail ${index + 1}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/placeholder.svg';
+                        }}
+                      />
+                    </div>
+                  ))}
               </div>
             )}
           </div>
