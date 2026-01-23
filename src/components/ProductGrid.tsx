@@ -1,8 +1,10 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useInView } from 'react-intersection-observer';
 import ProductCard from './ProductCard';
 import { Button } from './ui/button';
 import { ProductVariant } from '@/hooks/useProductVariants';
+import { Loader2 } from 'lucide-react';
 
 interface ProductGridProps {
   products: any[];
@@ -13,6 +15,8 @@ interface ProductGridProps {
   variantsByProduct?: Record<string, ProductVariant[]>;
 }
 
+const PAGE_SIZE = 12;
+
 const ProductGrid: React.FC<ProductGridProps> = ({
   products,
   loading,
@@ -21,6 +25,34 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   onClearSearch,
   variantsByProduct = {}
 }) => {
+  // Client-side pagination state
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  // Reset visible count when products change (e.g., search/filter)
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [products.length, searchQuery]);
+
+  // Infinite scroll trigger
+  const { ref: loadMoreRef, inView } = useInView({
+    threshold: 0.1,
+    triggerOnce: false,
+  });
+
+  // Load more when trigger is visible
+  useEffect(() => {
+    if (inView && visibleCount < products.length) {
+      // Small delay to prevent rapid loading
+      const timer = setTimeout(() => {
+        setVisibleCount(prev => Math.min(prev + PAGE_SIZE, products.length));
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [inView, visibleCount, products.length]);
+
+  const visibleProducts = products.slice(0, visibleCount);
+  const hasMore = visibleCount < products.length;
+
   if (loading) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
@@ -53,16 +85,33 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
-      {products.filter(product => product).map((product) => (
-        <ProductCard
-          key={product.id}
-          product={product}
-          onAddToCart={onAddToCart}
-          variants={variantsByProduct[product.id] || []}
-        />
-      ))}
-    </div>
+    <>
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
+        {visibleProducts.filter(product => product).map((product) => (
+          <ProductCard
+            key={product.id}
+            product={product}
+            onAddToCart={onAddToCart}
+            variants={variantsByProduct[product.id] || []}
+          />
+        ))}
+      </div>
+
+      {/* Infinite Scroll Trigger */}
+      {hasMore && (
+        <div ref={loadMoreRef} className="flex justify-center py-8">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="w-5 h-5 animate-spin" />
+            <span>جاري تحميل المزيد...</span>
+          </div>
+        </div>
+      )}
+
+      {/* Products count indicator */}
+      <div className="text-center text-sm text-muted-foreground py-4">
+        عرض {visibleProducts.length} من {products.length} منتج
+      </div>
+    </>
   );
 };
 

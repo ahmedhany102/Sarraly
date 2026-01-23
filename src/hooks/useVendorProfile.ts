@@ -76,7 +76,8 @@ export const useVendorProfile = () => {
     address?: string,
     salesChannelLink?: string,
     hasPhysicalStore?: boolean,
-    registrationNotes?: string
+    registrationNotes?: string,
+    logoUrl?: string
   ) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -124,10 +125,10 @@ export const useVendorProfile = () => {
           address: address || null,
           slug: slug,
           status: 'pending',
-          // New business info fields - stored in metadata JSONB or separate columns
           sales_channel_link: salesChannelLink || null,
           has_physical_store: hasPhysicalStore || false,
-          registration_notes: registrationNotes || null
+          registration_notes: registrationNotes || null,
+          logo_url: logoUrl || null
         })
         .select()
         .single();

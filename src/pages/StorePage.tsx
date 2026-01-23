@@ -1,12 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useInView } from 'react-intersection-observer';
 import Layout from '@/components/Layout';
 import { useVendorProducts, useVendorCategories } from '@/hooks/useVendors';
 import { useVendorContext } from '@/hooks/useVendorContext';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import ProductCard from '@/components/ProductCard';
-import { Store, Package, ArrowRight } from 'lucide-react';
+import { Store, Package, ArrowRight, Loader2 } from 'lucide-react';
 import { useBestSellers, useLastViewed } from '@/hooks/useSections';
 import { useBulkProductVariants } from '@/hooks/useBulkProductVariants';
 import { ProductCarousel } from '@/components/sections';
@@ -24,12 +25,25 @@ const StorePage = () => {
   // VendorContextProvider guarantees vendorId is available
   const { vendorId, vendorSlug, vendor } = useVendorContext();
 
-  // Vendor data hooks - use vendorId from context
-  const { products, loading: productsLoading } = useVendorProducts(
+  // Vendor data hooks - use vendorId from context with pagination
+  const { products, loading: productsLoading, loadingMore, hasMore, loadMore } = useVendorProducts(
     vendorId,
     selectedSubcategory || selectedCategory,
     searchQuery
   );
+
+  // Infinite scroll trigger
+  const { ref: loadMoreRef, inView } = useInView({
+    threshold: 0.1,
+    triggerOnce: false,
+  });
+
+  // Trigger load more when element comes into view
+  useEffect(() => {
+    if (inView && hasMore && !loadingMore) {
+      loadMore();
+    }
+  }, [inView, hasMore, loadingMore, loadMore]);
   const { mainCategories, subcategories } = useVendorCategories(vendorId);
 
   // Get child categories when parent is selected
@@ -153,16 +167,32 @@ const StorePage = () => {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 pb-8">
-            {products.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={handleAddToCart}
-                variants={variantsByProduct[product.id] || []}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 pb-8">
+              {products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onAddToCart={handleAddToCart}
+                  variants={variantsByProduct[product.id] || []}
+                />
+              ))}
+            </div>
+
+            {/* Infinite Scroll Trigger */}
+            {hasMore && (
+              <div ref={loadMoreRef} className="flex justify-center py-8">
+                {loadingMore ? (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>جاري التحميل...</span>
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground">التمرير لتحميل المزيد</span>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
     </Layout>

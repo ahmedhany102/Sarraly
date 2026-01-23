@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import SearchBar from './SearchBar';
 import CategoryNavigation from './CategoryNavigation';
 import { useSupabaseProducts } from '@/hooks/useSupabaseProducts';
-import { useProductFiltering } from '@/hooks/useProductFiltering';
 import { useCategories } from '@/hooks/useCategories';
 import ProductCatalogHeader from './ProductCatalogHeader';
 import ProductGrid from './ProductGrid';
@@ -12,51 +11,62 @@ import { useBulkProductVariants } from '@/hooks/useBulkProductVariants';
 import { Button } from '@/components/ui/button';
 
 const ProductCatalog: React.FC = () => {
-  const { products, loading } = useSupabaseProducts();
-  const { categories, subcategories: getSubcategories } = useCategories();
-  const { cartItems, cartCount, addToCart: addToCartDB, removeFromCart, updateQuantity, clearCart } = useCartIntegration();
+  // Filter state - managed locally, passed to hook for SERVER-SIDE filtering
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Get child categories for the selected parent
-  const [internalSelectedCategoryId, setInternalSelectedCategoryId] = useState<string | null>(null);
+  // Determine which category to filter by (subcategory takes precedence)
+  const effectiveCategoryId = selectedSubcategoryId || selectedCategoryId;
 
-  const childCategories = useMemo(() => {
-    if (!internalSelectedCategoryId) return [];
-    return getSubcategories(internalSelectedCategoryId);
-  }, [internalSelectedCategoryId, getSubcategories]);
-
-  // Check if selected category is a parent (has children)
-  const selectedCategory = categories.find(c => c.id === internalSelectedCategoryId);
-  const isParentCategory = selectedCategory && !selectedCategory.parent_id && childCategories.length > 0;
-
-  // Get child IDs for filtering
-  const childCategoryIds = useMemo(() =>
-    childCategories.map(c => c.id),
-    [childCategories]
+  // Fetch products with SERVER-SIDE filtering
+  const { products, loading, hasMore, loadMore, loadingMore } = useSupabaseProducts(
+    effectiveCategoryId,
+    searchQuery || null
   );
 
-  const {
-    filteredProducts,
-    searchQuery,
-    selectedCategoryId,
-    selectedSubcategoryId,
-    handleSearch,
-    handleCategoryFilter,
-    handleSubcategoryFilter,
-    clearFilters
-  } = useProductFiltering(products, {
-    categories,
-    childCategoryIds: isParentCategory ? childCategoryIds : undefined
-  });
+  const { categories, subcategories: getSubcategories } = useCategories();
+  const { cartItems, addToCart: addToCartDB, removeFromCart, updateQuantity, clearCart } = useCartIntegration();
+
+  // Get child categories for the selected parent
+  const childCategories = useMemo(() => {
+    if (!selectedCategoryId) return [];
+    return getSubcategories(selectedCategoryId);
+  }, [selectedCategoryId, getSubcategories]);
+
+  // Check if selected category is a parent (has children)
+  const selectedCategory = categories.find(c => c.id === selectedCategoryId);
+  const isParentCategory = selectedCategory && !selectedCategory.parent_id && childCategories.length > 0;
 
   // Fetch all variants in bulk for all products
-  const productIds = React.useMemo(() => products.map(p => p.id), [products]);
+  const productIds = useMemo(() => products.map(p => p.id), [products]);
   const { variantsByProduct } = useBulkProductVariants(productIds);
-  const [showCartDialog, setShowCartDialog] = React.useState(false);
+  const [showCartDialog, setShowCartDialog] = useState(false);
 
-  // Sync internal category state with filter
+  // Handle category selection
   const handleCategorySelect = (categoryId: string | null) => {
-    setInternalSelectedCategoryId(categoryId);
-    handleCategoryFilter(categoryId);
+    console.log('📂 Category selected:', categoryId);
+    setSelectedCategoryId(categoryId);
+    setSelectedSubcategoryId(null); // Reset subcategory when parent changes
+  };
+
+  // Handle subcategory selection
+  const handleSubcategoryFilter = (subcategoryId: string | null) => {
+    console.log('📁 Subcategory selected:', subcategoryId);
+    setSelectedSubcategoryId(subcategoryId);
+  };
+
+  // Handle search
+  const handleSearch = (query: string) => {
+    console.log('🔍 Search query:', query);
+    setSearchQuery(query);
+  };
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSelectedCategoryId(null);
+    setSelectedSubcategoryId(null);
+    setSearchQuery('');
   };
 
   // Convert cart items to the format expected by ShoppingCartDialog
@@ -117,22 +127,19 @@ const ProductCatalog: React.FC = () => {
               onClick={() => handleSubcategoryFilter(null)}
               className="whitespace-nowrap"
             >
-              الكل ({filteredProducts.length})
+              الكل
             </Button>
-            {childCategories.map(sub => {
-              const subCount = products.filter(p => p.category_id === sub.id).length;
-              return (
-                <Button
-                  key={sub.id}
-                  variant={selectedSubcategoryId === sub.id ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => handleSubcategoryFilter(sub.id)}
-                  className="whitespace-nowrap"
-                >
-                  {sub.name} ({subCount})
-                </Button>
-              );
-            })}
+            {childCategories.map(sub => (
+              <Button
+                key={sub.id}
+                variant={selectedSubcategoryId === sub.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => handleSubcategoryFilter(sub.id)}
+                className="whitespace-nowrap"
+              >
+                {sub.name}
+              </Button>
+            ))}
           </div>
         </div>
       )}
@@ -140,7 +147,7 @@ const ProductCatalog: React.FC = () => {
       <SearchBar onSearch={handleSearch} placeholder="ابحث عن المنتجات..." />
 
       <ProductGrid
-        products={filteredProducts}
+        products={products}
         loading={loading}
         searchQuery={searchQuery}
         onAddToCart={handleAddToCart}
@@ -160,4 +167,3 @@ const ProductCatalog: React.FC = () => {
   );
 };
 export default ProductCatalog;
-

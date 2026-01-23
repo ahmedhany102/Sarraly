@@ -60,7 +60,7 @@ const RevenueAnalytics: React.FC = () => {
       const vendorAnalytics: VendorAnalytics[] = (data || []).map((v: any) => ({
         vendor_id: v.vendor_id,
         vendor_name: v.vendor_name || 'Unknown',
-        commission_rate: v.commission_rate || 10,
+        commission_rate: v.commission_rate ?? 10, // Use ?? to allow 0 as valid value
         total_orders: v.total_orders || 0,
         total_revenue: v.total_revenue || 0,
         today_revenue: v.today_revenue || 0,

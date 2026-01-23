@@ -23,13 +23,30 @@ interface Product {
   [key: string]: any;
 }
 
-export const useSupabaseProducts = () => {
-  const [products, setProducts] = useState<Product[]>([]);
+export const useSupabaseProducts = (categoryId?: string | null, searchQuery?: string | null) => {
+  const [allProducts, setAllProducts] = useState<Product[]>([]); // All fetched products
+  const [products, setProducts] = useState<Product[]>([]); // Visible products (paginated)
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
+  const PAGE_SIZE = 12;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  // Re-fetch when filters change
   useEffect(() => {
+    console.log('🔄 Filters changed, re-fetching products...', { categoryId, searchQuery });
+    setVisibleCount(PAGE_SIZE); // Reset pagination
+    setAllProducts([]); // Clear current products
     fetchProducts();
-  }, []);
+  }, [categoryId, searchQuery]);
+
+  // Update visible products when allProducts or visibleCount changes
+  useEffect(() => {
+    const visible = allProducts.slice(0, visibleCount);
+    setProducts(visible);
+    setHasMore(visibleCount < allProducts.length);
+  }, [allProducts, visibleCount]);
 
   const fetchProducts = async () => {
     try {
@@ -40,13 +57,14 @@ export const useSupabaseProducts = () => {
         setProducts([]);
       });
 
-      console.log('🔄 Fetching products with vendor info...');
+      console.log('🔄 Fetching products with vendor info...', { categoryId, searchQuery });
 
       // Use RPC to get products with vendor info, filtering to only approved products
+      // Pass categoryId and searchQuery for SERVER-SIDE filtering
       const { data, error } = await supabase.rpc('get_products_with_vendor', {
-        _category_id: null,
-        _search_query: null,
-        _limit: 100 // Increased from 20 to ensure all products are included in listings
+        _category_id: categoryId || null,
+        _search_query: searchQuery?.trim() || null,
+        _limit: 100 // Fetch up to 100 matching products
       });
 
       LoadingFallback.clearTimeout('product-fetch');
@@ -159,16 +177,34 @@ export const useSupabaseProducts = () => {
       console.log('🔒 Products from active vendors:', activeVendorProducts.length);
 
       // === FIX: Use filtered products to ensure only active vendor products show ===
-      setProducts(activeVendorProducts);
+      setAllProducts(activeVendorProducts);
+      setVisibleCount(PAGE_SIZE); // Reset to first page
 
     } catch (error: any) {
       LoadingFallback.clearTimeout('product-fetch');
       console.error('💥 Exception while fetching products:', error);
       toast.error('Failed to load products: ' + error.message);
-      setProducts([]);
+      setAllProducts([]);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Load more products (pagination)
+  const loadMore = () => {
+    if (!loadingMore && hasMore) {
+      setLoadingMore(true);
+      // Simulate slight delay for UX
+      setTimeout(() => {
+        setVisibleCount(prev => Math.min(prev + PAGE_SIZE, allProducts.length));
+        setLoadingMore(false);
+      }, 100);
+    }
+  };
+
+  // Reset pagination (for filters)
+  const resetPagination = () => {
+    setVisibleCount(PAGE_SIZE);
   };
 
   const addProduct = async (productData: any) => {
@@ -327,6 +363,10 @@ export const useSupabaseProducts = () => {
   return {
     products,
     loading,
+    loadingMore,
+    hasMore,
+    loadMore,
+    resetPagination,
     addProduct,
     updateProduct,
     deleteProduct,

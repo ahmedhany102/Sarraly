@@ -21,7 +21,6 @@ const CategoryPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { products: allProducts, loading: productsLoading } = useSupabaseProducts();
   const { categories, subcategories: getSubcategories, loading: categoriesLoading } = useCategories();
   const { cartItems, addToCart: addToCartDB, removeFromCart, updateQuantity, clearCart } = useCartIntegration();
   const [showCartDialog, setShowCartDialog] = useState(false);
@@ -45,16 +44,6 @@ const CategoryPage = () => {
   // Only fetch vendor categories when in vendor context
   const { mainCategories, subcategories: vendorSubcategories } = useVendorCategories(vendorId);
 
-  // Filter products by vendor if in vendor context
-  const products = useMemo(() => {
-    if (!isVendorContext || !vendorId) return allProducts;
-    return allProducts.filter(p => p.vendor_id === vendorId);
-  }, [allProducts, isVendorContext, vendorId]);
-
-  // Fetch color variants for all products
-  const productIds = useMemo(() => products.map(p => p.id), [products]);
-  const { variantsByProduct } = useBulkProductVariants(productIds);
-
   // Find the current category by slug OR id (hamburger menu passes id, direct URL uses slug)
   const category = categories.find(cat => cat.slug === slug || cat.id === slug);
 
@@ -67,24 +56,29 @@ const CategoryPage = () => {
   // Check if this is a parent category (has no parent_id and has children)
   const isParentCategory = category && !category.parent_id && childCategories.length > 0;
 
-  // Filter products by category hierarchy
+  // Determine effective category for server-side filtering
+  // If subcategory selected, use that; otherwise use the current category
+  const effectiveCategoryId = useMemo(() => {
+    if (selectedSubcategory) return selectedSubcategory;
+    return category?.id || null;
+  }, [selectedSubcategory, category?.id]);
+
+  // Fetch products with SERVER-SIDE category filtering
+  const { products: allProducts, loading: productsLoading } = useSupabaseProducts(
+    effectiveCategoryId,
+    null // search is handled separately
+  );
+
+  // Products are already filtered by category at the server level
+  // Just apply vendor filtering if in vendor context
   const categoryProducts = useMemo(() => {
-    if (!category) return products;
+    if (!isVendorContext || !vendorId) return allProducts;
+    return allProducts.filter(p => p.vendor_id === vendorId);
+  }, [allProducts, isVendorContext, vendorId]);
 
-    if (selectedSubcategory) {
-      // User selected a specific subcategory
-      return products.filter(product => product.category_id === selectedSubcategory);
-    }
-
-    if (isParentCategory) {
-      // On parent category - show products from all child categories
-      const childIds = childCategories.map(c => c.id);
-      return products.filter(product => childIds.includes(product.category_id));
-    }
-
-    // On a child category or category without children - exact match
-    return products.filter(product => product.category_id === category.id);
-  }, [category, selectedSubcategory, isParentCategory, childCategories, products]);
+  // Fetch color variants for all products
+  const productIds = useMemo(() => categoryProducts.map(p => p.id), [categoryProducts]);
+  const { variantsByProduct } = useBulkProductVariants(productIds);
 
   // Product filtering (search)
   const {
@@ -241,7 +235,7 @@ const CategoryPage = () => {
         {isParentCategory && childCategories.length > 0 && (() => {
           // Filter to only show subcategories with products
           const nonEmptySubcategories = childCategories.filter(sub =>
-            products.some(p => p.category_id === sub.id)
+            allProducts.some(p => p.category_id === sub.id)
           );
 
           // Don't render tabs section if no subcategories have products
@@ -259,7 +253,7 @@ const CategoryPage = () => {
                   الكل ({categoryProducts.length})
                 </Button>
                 {nonEmptySubcategories.map(sub => {
-                  const subCount = products.filter(p => p.category_id === sub.id).length;
+                  const subCount = allProducts.filter(p => p.category_id === sub.id).length;
                   return (
                     <Button
                       key={sub.id}

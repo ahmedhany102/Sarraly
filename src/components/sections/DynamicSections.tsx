@@ -6,6 +6,7 @@ import AdCarousel from '@/components/AdCarousel';
 import CategoryGrid from './CategoryGrid';
 import MidPageAds from '@/components/MidPageAds';
 import { ProductCarousel } from '@/components/sections';
+import LazySection from './LazySection';
 import { Star, Flame, Clock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Section } from '@/types/section';
@@ -16,6 +17,52 @@ interface DynamicSectionsProps {
   onCategorySelect?: (categoryId: string | null) => void;
 }
 
+// Lazy-loaded Best Sellers component
+const LazyBestSellers: React.FC<{ vendorId?: string }> = ({ vendorId }) => {
+  const { products, loading } = useBestSellers(vendorId, 12);
+  if (products.length === 0) return null;
+  return (
+    <ProductCarousel
+      title="Best Sellers"
+      products={products}
+      loading={loading}
+      variant="best_seller"
+      icon={<Star className="w-5 h-5" fill="currentColor" />}
+      showMoreLink="/section/best-sellers"
+    />
+  );
+};
+
+// Lazy-loaded Hot Deals component
+const LazyHotDeals: React.FC<{ vendorId?: string }> = ({ vendorId }) => {
+  const { products, loading } = useHotDeals(vendorId, 12);
+  if (products.length === 0) return null;
+  return (
+    <ProductCarousel
+      title="Hot Deals 🔥"
+      products={products}
+      loading={loading}
+      variant="hot_deals"
+      icon={<Flame className="w-5 h-5" />}
+      showMoreLink="/section/hot-deals"
+    />
+  );
+};
+
+// Lazy-loaded Last Viewed component
+const LazyLastViewed: React.FC<{ vendorId?: string }> = ({ vendorId }) => {
+  const { products, loading } = useLastViewed(vendorId, 10);
+  if (products.length === 0) return null;
+  return (
+    <ProductCarousel
+      title="Recently Viewed"
+      products={products}
+      loading={loading}
+      icon={<Clock className="w-5 h-5" />}
+    />
+  );
+};
+
 const DynamicSections: React.FC<DynamicSectionsProps> = ({
   scope = 'global',
   vendorId,
@@ -23,11 +70,6 @@ const DynamicSections: React.FC<DynamicSectionsProps> = ({
 }) => {
   const { user } = useAuth();
   const { sections, loading } = useSections(scope, vendorId);
-
-  // Fallback data hooks - always loaded for potential use
-  const { products: bestSellers, loading: bestSellersLoading } = useBestSellers(vendorId, 12);
-  const { products: hotDeals, loading: hotDealsLoading } = useHotDeals(vendorId, 12);
-  const { products: lastViewed, loading: lastViewedLoading } = useLastViewed(vendorId, 10);
 
   if (loading) {
     return (
@@ -44,16 +86,6 @@ const DynamicSections: React.FC<DynamicSectionsProps> = ({
                 <Skeleton className="w-20 h-20 rounded-full" />
                 <Skeleton className="w-16 h-4" />
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Product section skeleton */}
-        <div>
-          <Skeleton className="h-6 w-40 mb-4" />
-          <div className="flex gap-4 overflow-hidden">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="min-w-[180px] h-64 rounded-lg flex-shrink-0" />
             ))}
           </div>
         </div>
@@ -81,7 +113,7 @@ const DynamicSections: React.FC<DynamicSectionsProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* 1. ALWAYS render Hero Banner first */}
+      {/* 1. ALWAYS render Hero Banner first - ABOVE THE FOLD */}
       {!hasHeroSection ? (
         <section>
           <AdCarousel />
@@ -97,7 +129,7 @@ const DynamicSections: React.FC<DynamicSectionsProps> = ({
         ))
       )}
 
-      {/* 2. ALWAYS render Categories Grid */}
+      {/* 2. ALWAYS render Categories Grid - ABOVE THE FOLD */}
       {!hasCategorySection ? (
         <section>
           <CategoryGrid limit={10} onCategorySelect={onCategorySelect} />
@@ -113,80 +145,73 @@ const DynamicSections: React.FC<DynamicSectionsProps> = ({
         ))
       )}
 
+      {/* === BELOW THE FOLD - LAZY LOADED === */}
+
       {/* 3. ONE section BEFORE mid-page ads (if exists) */}
       {sectionsBeforeAds.map(section => (
-        <SectionRenderer
-          key={section.id}
-          section={section}
-          vendorId={vendorId}
-          onCategorySelect={onCategorySelect}
-        />
-      ))}
-
-      {/* 4. Auto best sellers before ads if no sections defined */}
-      {!hasBestSellers && bestSellers.length > 0 && sectionsBeforeAds.length === 0 && (
-        <section>
-          <ProductCarousel
-            title="Best Sellers"
-            products={bestSellers}
-            loading={bestSellersLoading}
-            variant="best_seller"
-            icon={<Star className="w-5 h-5" fill="currentColor" />}
-            showMoreLink="/section/best-sellers"
-          />
-        </section>
-      )}
-
-      {/* 5. MID-PAGE ADS - FIXED POSITION (always in the middle) */}
-      {hasMidPageAds ? (
-        sections.filter(s => s.type === 'mid_page_ads').map(section => (
+        <LazySection key={section.id}>
           <SectionRenderer
-            key={section.id}
             section={section}
             vendorId={vendorId}
             onCategorySelect={onCategorySelect}
           />
-        ))
-      ) : (
-        <section>
-          <MidPageAds className="my-4" />
-        </section>
-      )}
-
-      {/* 6. ALL remaining sections AFTER mid-page ads */}
-      {sectionsAfterAds.map(section => (
-        <SectionRenderer
-          key={section.id}
-          section={section}
-          vendorId={vendorId}
-          onCategorySelect={onCategorySelect}
-        />
+        </LazySection>
       ))}
 
-      {/* 7. Auto hot deals after ads if not configured */}
-      {!hasHotDeals && hotDeals.length > 0 && (
-        <section>
-          <ProductCarousel
-            title="Hot Deals 🔥"
-            products={hotDeals}
-            loading={hotDealsLoading}
-            variant="hot_deals"
-            icon={<Flame className="w-5 h-5" />}
-            showMoreLink="/section/hot-deals"
-          />
-        </section>
+      {/* 4. Auto best sellers before ads if no sections defined - LAZY */}
+      {!hasBestSellers && sectionsBeforeAds.length === 0 && (
+        <LazySection>
+          <section>
+            <LazyBestSellers vendorId={vendorId} />
+          </section>
+        </LazySection>
       )}
 
-      {/* 8. Last Viewed - always shows for logged-in users at the end */}
-      {user && !hasLastViewed && lastViewed.length > 0 && (
-        <section>
-          <ProductCarousel
-            title="Recently Viewed"
-            products={lastViewed}
-            loading={lastViewedLoading}
-            icon={<Clock className="w-5 h-5" />}
+      {/* 5. MID-PAGE ADS - LAZY */}
+      <LazySection skeletonHeight="200px">
+        {hasMidPageAds ? (
+          sections.filter(s => s.type === 'mid_page_ads').map(section => (
+            <SectionRenderer
+              key={section.id}
+              section={section}
+              vendorId={vendorId}
+              onCategorySelect={onCategorySelect}
+            />
+          ))
+        ) : (
+          <section>
+            <MidPageAds className="my-4" />
+          </section>
+        )}
+      </LazySection>
+
+      {/* 6. ALL remaining sections AFTER mid-page ads - LAZY */}
+      {sectionsAfterAds.map(section => (
+        <LazySection key={section.id}>
+          <SectionRenderer
+            section={section}
+            vendorId={vendorId}
+            onCategorySelect={onCategorySelect}
           />
-        </section>
+        </LazySection>
+      ))}
+
+      {/* 7. Auto hot deals after ads if not configured - LAZY */}
+      {!hasHotDeals && (
+        <LazySection>
+          <section>
+            <LazyHotDeals vendorId={vendorId} />
+          </section>
+        </LazySection>
+      )}
+
+      {/* 8. Last Viewed - always shows for logged-in users at the end - LAZY */}
+      {user && !hasLastViewed && (
+        <LazySection>
+          <section>
+            <LazyLastViewed vendorId={vendorId} />
+          </section>
+        </LazySection>
       )}
     </div>
   );

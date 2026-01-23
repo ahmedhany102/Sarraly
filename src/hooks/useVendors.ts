@@ -141,11 +141,22 @@ export const useVendorBySlug = (slug: string | undefined) => {
   return { vendor, loading, error };
 };
 
-// Fetch products for a specific vendor
+// Fetch products for a specific vendor with pagination
 export const useVendorProducts = (vendorId: string | undefined, categoryId?: string | null, searchQuery?: string) => {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 12;
+
+  // Reset when filters change
+  useEffect(() => {
+    setProducts([]);
+    setPage(0);
+    setHasMore(true);
+  }, [vendorId, categoryId, searchQuery]);
 
   useEffect(() => {
     if (!vendorId) {
@@ -153,22 +164,30 @@ export const useVendorProducts = (vendorId: string | undefined, categoryId?: str
       setLoading(false);
       return;
     }
-    fetchProducts();
+    fetchProducts(0, true);
   }, [vendorId, categoryId, searchQuery]);
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (pageNum: number, isInitial: boolean = false) => {
     if (!vendorId) return;
 
     try {
-      setLoading(true);
+      if (isInitial) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
+
+      const from = pageNum * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
 
       // Use the view that includes average_rating and reviews_count
-      // Cast to 'products' to satisfy TypeScript - the view has same columns + extra
       let query = supabase
         .from('products_with_ratings' as 'products')
-        .select('*')
+        .select('*', { count: 'exact' })
         .eq('vendor_id', vendorId)
-        .in('status', ['active', 'approved']);
+        .in('status', ['active', 'approved'])
+        .range(from, to)
+        .order('created_at', { ascending: false });
 
       if (categoryId) {
         query = query.eq('category_id', categoryId);
@@ -178,20 +197,45 @@ export const useVendorProducts = (vendorId: string | undefined, categoryId?: str
         query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
       }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const { data, error, count } = await query;
 
       if (error) throw error;
 
-      setProducts(data || []);
+      const newProducts = data || [];
+
+      if (isInitial) {
+        setProducts(newProducts);
+      } else {
+        setProducts(prev => [...prev, ...newProducts]);
+      }
+
+      // Check if there are more products
+      const totalFetched = (pageNum + 1) * PAGE_SIZE;
+      setHasMore(count ? totalFetched < count : newProducts.length === PAGE_SIZE);
+      setPage(pageNum);
     } catch (err: any) {
       console.error('Error fetching vendor products:', err);
       setError(err.message);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
-  return { products, loading, error, refetch: fetchProducts };
+  const loadMore = () => {
+    if (!loadingMore && hasMore) {
+      fetchProducts(page + 1, false);
+    }
+  };
+
+  const refetch = () => {
+    setProducts([]);
+    setPage(0);
+    setHasMore(true);
+    fetchProducts(0, true);
+  };
+
+  return { products, loading, loadingMore, error, hasMore, loadMore, refetch };
 };
 
 // Fetch categories that a vendor has products in

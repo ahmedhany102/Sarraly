@@ -130,7 +130,8 @@ const BecomeVendor = () => {
     address?: string,
     salesChannelLink?: string,
     hasPhysicalStore?: boolean,
-    registrationNotes?: string
+    registrationNotes?: string,
+    logoUrl?: string
   ) => {
     const success = await applyAsVendor(
       storeName,
@@ -139,7 +140,8 @@ const BecomeVendor = () => {
       address,
       salesChannelLink,
       hasPhysicalStore,
-      registrationNotes
+      registrationNotes,
+      logoUrl
     );
     return success;
   };
