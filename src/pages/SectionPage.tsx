@@ -5,6 +5,7 @@ import ProductCard from '@/components/ProductCard';
 import { useSectionProducts, useBestSellers, useHotDeals, useCategoryProducts } from '@/hooks/useSections';
 import { useVendorContext } from '@/hooks/useVendorContext';
 import { useVendorCategories } from '@/hooks/useVendors';
+import { useLanguageSafe } from '@/contexts/LanguageContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Package, Star, Flame } from 'lucide-react';
@@ -42,6 +43,9 @@ const SectionPage = () => {
 
   // Get vendor context
   const { isVendorContext, vendorId, vendorSlug } = useVendorContext();
+
+  // Get language context for bilingual support
+  const { language } = useLanguageSafe();
 
   // Only fetch vendor categories when in vendor context
   const { mainCategories, subcategories } = useVendorCategories(vendorId);
@@ -114,10 +118,14 @@ const SectionPage = () => {
     return section?.type || 'manual';
   };
 
-  // Get section title - from virtual section OR database section
+  // Get section title - supports bilingual (English when language is 'en')
   const getSectionTitle = (): string => {
     if (isVirtualSection && virtualSection) {
       return virtualSection.title;
+    }
+    // If English is selected and title_en exists, use it
+    if (language === 'en' && section?.title_en) {
+      return section.title_en;
     }
     return section?.title || 'القسم';
   };

@@ -1,6 +1,9 @@
 export interface Section {
   id: string;
   title: string;
+  title_en?: string;           // English title (optional)
+  subtitle?: string;           // Arabic subtitle (optional)
+  subtitle_en?: string;        // English subtitle (optional)
   type: 'hero_carousel' | 'category_grid' | 'best_seller' | 'hot_deals' | 'last_viewed' | 'category_products' | 'manual' | 'vendor_highlights' | 'mid_page_ads';
   scope: 'global' | 'vendor';
   vendor_id: string | null;

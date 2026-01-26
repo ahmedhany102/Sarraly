@@ -14,6 +14,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 interface Section {
   id: string;
   title: string;
+  title_en?: string;           // English title
+  subtitle?: string;           // Arabic subtitle
+  subtitle_en?: string;        // English subtitle
   type: string;
   scope: string;
   sort_order: number;
@@ -71,6 +74,7 @@ const SectionsManager: React.FC = () => {
 
   // Form state
   const [title, setTitle] = useState('');
+  const [titleEn, setTitleEn] = useState('');  // English title
   const [type, setType] = useState('manual');
   const [isActive, setIsActive] = useState(true);
   const [backgroundColor, setBackgroundColor] = useState('none');
@@ -151,6 +155,7 @@ const SectionsManager: React.FC = () => {
 
   const resetForm = () => {
     setTitle('');
+    setTitleEn('');
     setType('manual');
     setIsActive(true);
     setBackgroundColor('none');
@@ -215,6 +220,7 @@ const SectionsManager: React.FC = () => {
         .from('sections')
         .insert({
           title: title.trim(),
+          title_en: titleEn.trim() || null,  // Save English title
           type,
           scope: 'global',
           sort_order: maxOrder,
@@ -252,6 +258,7 @@ const SectionsManager: React.FC = () => {
         .from('sections')
         .update({
           title: title.trim(),
+          title_en: titleEn.trim() || null,  // Save English title
           type,
           is_active: isActive,
           config: newConfig,
@@ -326,6 +333,7 @@ const SectionsManager: React.FC = () => {
   const openEditDialog = (section: Section) => {
     setEditingSection(section);
     setTitle(section.title);
+    setTitleEn(section.title_en || '');  // Load English title
     setType(section.type);
     setIsActive(section.is_active);
     setBackgroundColor(section.config?.background_color || 'none');
@@ -439,12 +447,25 @@ const SectionsManager: React.FC = () => {
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label>Section Title</Label>
+                <Label>Section Title (Arabic) *</Label>
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Featured Products"
+                  placeholder="مثال: الأكثر مبيعاً"
+                  dir="rtl"
                 />
+              </div>
+              <div>
+                <Label>Section Title (English)</Label>
+                <Input
+                  value={titleEn}
+                  onChange={(e) => setTitleEn(e.target.value)}
+                  placeholder="e.g. Best Sellers"
+                  dir="ltr"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Optional - will be shown when site language is English
+                </p>
               </div>
               <div>
                 <Label>Section Type</Label>
@@ -566,7 +587,7 @@ const SectionsManager: React.FC = () => {
 
                   <div className="flex-1">
                     <h4 className="font-medium flex items-center gap-2">
-                      {section.title}
+                      <span dir="rtl">{section.title}</span>
                       {section.config?.background_color && (
                         <span
                           className="w-3 h-3 rounded-full border"
@@ -575,7 +596,13 @@ const SectionsManager: React.FC = () => {
                         />
                       )}
                     </h4>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    {section.title_en && (
+                      <p className="text-sm text-blue-600">🇺🇸 {section.title_en}</p>
+                    )}
+                    {!section.title_en && (
+                      <p className="text-xs text-orange-500">⚠️ No English title</p>
+                    )}
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                       <span className="capitalize">{section.type.replace('_', ' ')}</span>
                       <span>•</span>
                       <span className={`flex items-center gap-1 ${section.is_active ? 'text-green-600' : 'text-gray-500'}`}>
@@ -630,12 +657,25 @@ const SectionsManager: React.FC = () => {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Section Title</Label>
+              <Label>Section Title (Arabic) *</Label>
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Featured Products"
+                placeholder="مثال: الأكثر مبيعاً"
+                dir="rtl"
               />
+            </div>
+            <div>
+              <Label>Section Title (English)</Label>
+              <Input
+                value={titleEn}
+                onChange={(e) => setTitleEn(e.target.value)}
+                placeholder="e.g. Best Sellers"
+                dir="ltr"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Optional - will be shown when site language is English
+              </p>
             </div>
             <div>
               <Label>Section Type</Label>

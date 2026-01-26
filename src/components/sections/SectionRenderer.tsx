@@ -15,6 +15,18 @@ interface SectionRendererProps {
   onCategorySelect?: (categoryId: string | null) => void;
 }
 
+// ===================================================
+// BILINGUAL TITLE HELPER - Gets title based on language
+// ===================================================
+const getSectionTitle = (section: Section, language: string): string => {
+  // If English is selected AND English title exists, use it
+  if (language === 'en' && section.title_en) {
+    return section.title_en;
+  }
+  // Otherwise fallback to Arabic/default title
+  return section.title;
+};
+
 // Individual section type components
 const HeroCarouselSection: React.FC = () => {
   return <AdCarousel />;
@@ -26,11 +38,16 @@ const CategoryGridSection: React.FC<{ config: Section['config']; onCategorySelec
 
 const BestSellerSection: React.FC<{ section: Section; config: Section['config']; vendorId?: string }> = ({ section, config, vendorId }) => {
   const { products, loading } = useBestSellers(vendorId, config.limit || 12);
-  const { t } = useLanguageSafe();
+  const { t, language } = useLanguageSafe();
+
+  // Use custom title if set, otherwise use translation
+  const displayTitle = section.title_en || section.title !== 'Best Sellers'
+    ? getSectionTitle(section, language)
+    : (t?.sections?.bestSellers || "Best Sellers");
 
   return (
     <ProductCarousel
-      title={t?.sections?.bestSellers || "Best Sellers"}
+      title={displayTitle}
       products={products}
       loading={loading}
       variant="best_seller"
@@ -42,11 +59,16 @@ const BestSellerSection: React.FC<{ section: Section; config: Section['config'];
 
 const HotDealsSection: React.FC<{ section: Section; config: Section['config']; vendorId?: string }> = ({ section, config, vendorId }) => {
   const { products, loading } = useHotDeals(vendorId, config.limit || 12);
-  const { t } = useLanguageSafe();
+  const { t, language } = useLanguageSafe();
+
+  // Use custom title if set, otherwise use translation
+  const displayTitle = section.title_en || section.title !== 'Hot Deals'
+    ? getSectionTitle(section, language)
+    : (t?.sections?.hotDeals || "Hot Deals 🔥");
 
   return (
     <ProductCarousel
-      title={t?.sections?.hotDeals || "Hot Deals 🔥"}
+      title={displayTitle}
       products={products}
       loading={loading}
       variant="hot_deals"
@@ -57,17 +79,22 @@ const HotDealsSection: React.FC<{ section: Section; config: Section['config']; v
 };
 
 
-const LastViewedSection: React.FC<{ config: Section['config']; vendorId?: string }> = ({ config, vendorId }) => {
+const LastViewedSection: React.FC<{ section: Section; config: Section['config']; vendorId?: string }> = ({ section, config, vendorId }) => {
   const { user } = useAuth();
   const { products, loading } = useLastViewed(vendorId, config.limit || 10);
-  const { t } = useLanguageSafe();
+  const { t, language } = useLanguageSafe();
 
   // Don't show if not logged in or no products
   if (!user || (!loading && products.length === 0)) return null;
 
+  // Use custom title if set, otherwise use translation
+  const displayTitle = section.title_en || section.title !== 'Recently Viewed'
+    ? getSectionTitle(section, language)
+    : (t?.sections?.recentlyViewed || "Recently Viewed");
+
   return (
     <ProductCarousel
-      title={t?.sections?.recentlyViewed || "Recently Viewed"}
+      title={displayTitle}
       products={products}
       loading={loading}
       icon={<Clock className="w-5 h-5" />}
@@ -94,11 +121,15 @@ const CategoryProductsSection: React.FC<{ section: Section; config: Section['con
 
 const ManualSection: React.FC<{ section: Section }> = ({ section }) => {
   const { products, loading } = useSectionProducts(section.id, section.config.limit || 12);
+  const { language } = useLanguageSafe();
   const backgroundColor = section.config?.background_color;
+
+  // Use bilingual title helper
+  const displayTitle = getSectionTitle(section, language);
 
   return (
     <ProductCarousel
-      title={section.title}
+      title={displayTitle}
       products={products}
       loading={loading}
       showMoreLink={section.slug ? `/section/${section.slug}` : `/section/${section.id}`}
@@ -123,7 +154,7 @@ const SectionRenderer: React.FC<SectionRendererProps> = ({ section, vendorId, on
       return <HotDealsSection section={section} config={section.config} vendorId={vendorId} />;
 
     case 'last_viewed':
-      return <LastViewedSection config={section.config} vendorId={vendorId} />;
+      return <LastViewedSection section={section} config={section.config} vendorId={vendorId} />;
 
     case 'category_products':
       return <CategoryProductsSection section={section} config={section.config} vendorId={vendorId} />;

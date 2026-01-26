@@ -853,7 +853,10 @@ export type Database = {
           scope: string
           slug: string | null
           sort_order: number
+          subtitle: string | null
+          subtitle_en: string | null
           title: string
+          title_en: string | null
           type: string
           updated_at: string | null
           vendor_id: string | null
@@ -866,7 +869,10 @@ export type Database = {
           scope?: string
           slug?: string | null
           sort_order?: number
+          subtitle?: string | null
+          subtitle_en?: string | null
           title: string
+          title_en?: string | null
           type: string
           updated_at?: string | null
           vendor_id?: string | null
@@ -879,7 +885,10 @@ export type Database = {
           scope?: string
           slug?: string | null
           sort_order?: number
+          subtitle?: string | null
+          subtitle_en?: string | null
           title?: string
+          title_en?: string | null
           type?: string
           updated_at?: string | null
           vendor_id?: string | null
@@ -1345,7 +1354,10 @@ export type Database = {
           scope: string
           slug: string
           sort_order: number
+          subtitle: string
+          subtitle_en: string
           title: string
+          title_en: string
           type: string
           vendor_id: string
         }[]

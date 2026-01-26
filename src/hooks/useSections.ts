@@ -19,10 +19,13 @@ export function useSections(scope: 'global' | 'vendor' = 'global', vendorId?: st
 
         if (error) throw error;
 
-        // Map data to Section type with proper defaults
+        // Map data to Section type with proper defaults (including bilingual fields)
         const mappedSections: Section[] = (data || []).map((s: any) => ({
           id: s.id,
           title: s.title || '',
+          title_en: s.title_en || '',
+          subtitle: s.subtitle || '',
+          subtitle_en: s.subtitle_en || '',
           type: s.type || 'manual',
           scope: s.scope || 'global',
           vendor_id: s.vendor_id || null,
