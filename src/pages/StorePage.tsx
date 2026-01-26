@@ -102,7 +102,7 @@ const StorePage = () => {
             {bestSellers.length > 0 && (
               <div className="mb-8">
                 <ProductCarousel
-                  title={t?.products?.bestSeller || "Best Sellers"}
+                  title={t?.sections?.bestSellers || "Best Sellers"}
                   products={bestSellers}
                   loading={bestSellersLoading}
                   showMoreLink={`/store/${vendorSlug}/section/best-sellers`}
@@ -117,7 +117,7 @@ const StorePage = () => {
             {lastViewed.length > 0 && (
               <div className="mb-8">
                 <ProductCarousel
-                  title="شوهد مؤخراً"
+                  title={t?.sections?.lastViewed || "Recently Viewed"}
                   products={lastViewed}
                   loading={lastViewedLoading}
                 />
@@ -133,7 +133,7 @@ const StorePage = () => {
               ? childCategories.find(c => c.id === selectedSubcategory)?.name || (t?.products?.title || 'Products')
               : selectedCategory
                 ? mainCategories.find(c => c.id === selectedCategory)?.name || (t?.products?.title || 'Products')
-                : (t?.products?.allProducts || 'All Products')}
+                : (t?.sections?.allProducts || 'All Products')}
           </h2>
         </div>
 

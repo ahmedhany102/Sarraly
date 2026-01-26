@@ -1,4 +1,5 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguageSafe } from '@/contexts/LanguageContext';
 import { Navigate, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { useVendorProfile } from '@/hooks/useVendorProfile';
@@ -12,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const BecomeVendor = () => {
   const { user, loading: authLoading, isVendor } = useAuth();
+  const { t, direction } = useLanguageSafe();
   const navigate = useNavigate();
   const { profile, loading: profileLoading, applyAsVendor } = useVendorProfile();
 
@@ -34,22 +36,21 @@ const BecomeVendor = () => {
   if (!user) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-12">
+        <div dir={direction} className="container mx-auto px-4 py-12">
           <div className="max-w-3xl mx-auto text-center mb-10">
             <Store className="w-20 h-20 mx-auto mb-6 text-primary" />
             <h1 className="text-3xl md:text-4xl font-bold mb-4">
-              امتلك متجرك الخاص بمواصفات عالمية.. في لحظات
+              {t?.vendor?.heroTitle || "Own Your World-Class Store.. In Moments"}
             </h1>
             <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-              لا تضيع وقتك في البرمجة. احصل فوراً على لوحة تحكم شاملة لإدارة منتجاتك ومبيعاتك،
-              واعرض بضاعتك تلقائياً أمام آلاف الزوار في <span className="text-primary font-bold"> مول سرعلي الإلكتروني </span>
+              {t?.vendor?.heroSubtitle || "Don't waste time on coding. Get instant access to a comprehensive dashboard to manage your products and sales."}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" className="text-lg px-8" onClick={() => navigate('/signup?redirect=/become-vendor')}>
-                امتلك متجرك الآن
+                {t?.vendor?.startSelling || "Get Your Store Now"}
               </Button>
               <Button variant="outline" size="lg" onClick={() => navigate('/login?redirect=/become-vendor')}>
-                تسجيل الدخول
+                {t?.vendor?.login || "Login"}
               </Button>
             </div>
           </div>
@@ -57,17 +58,21 @@ const BecomeVendor = () => {
           {/* Benefits section for guests */}
           <Card className="max-w-3xl mx-auto">
             <CardHeader>
-              <CardTitle className="text-center text-2xl">لماذا سرعلي؟</CardTitle>
+              <CardTitle className="text-center text-2xl">
+                {t?.vendor?.whySarraly || "Why Sarraly?"}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-2 gap-6">
                 {/* Feature 1 */}
                 <div className="flex items-start gap-4 p-4 rounded-lg bg-muted/50">
                   <CheckCircle className="w-8 h-8 text-primary flex-shrink-0 mt-1" />
-                  <div>
-                    <h3 className="font-bold text-lg mb-1">تحكم واسع وشامل</h3>
+                  <div className="text-start">
+                    <h3 className="font-bold text-lg mb-1">
+                      {t?.vendor?.features?.controlTitle || "Comprehensive Control"}
+                    </h3>
                     <p className="text-muted-foreground text-sm">
-                      أدر مخزونك، حدد أسعارك، وتابع أرباحك بدقة من مكان واحد.
+                      {t?.vendor?.features?.controlDesc || "Manage your inventory, set your prices, and track your profits accurately from one place."}
                     </p>
                   </div>
                 </div>
@@ -75,10 +80,12 @@ const BecomeVendor = () => {
                 {/* Feature 2 */}
                 <div className="flex items-start gap-4 p-4 rounded-lg bg-muted/50">
                   <Clock className="w-8 h-8 text-primary flex-shrink-0 mt-1" />
-                  <div>
-                    <h3 className="font-bold text-lg mb-1">انطلاقة في <span className="text-primary">30 ثانية</span></h3>
+                  <div className="text-start">
+                    <h3 className="font-bold text-lg mb-1">
+                      {t?.vendor?.features?.launchTitle || "Launch in 30 Seconds"}
+                    </h3>
                     <p className="text-muted-foreground text-sm">
-                      سجل حسابك وابدأ البيع فوراً، لا توجد تعقيدات تقنية.
+                      {t?.vendor?.features?.launchDesc || "Register your account and start selling immediately, no technical complications."}
                     </p>
                   </div>
                 </div>
@@ -86,10 +93,12 @@ const BecomeVendor = () => {
                 {/* Feature 3 */}
                 <div className="flex items-start gap-4 p-4 rounded-lg bg-muted/50">
                   <Store className="w-8 h-8 text-primary flex-shrink-0 mt-1" />
-                  <div>
-                    <h3 className="font-bold text-lg mb-1">توسع بلا حدود</h3>
+                  <div className="text-start">
+                    <h3 className="font-bold text-lg mb-1">
+                      {t?.vendor?.features?.growthTitle || "Unlimited Growth"}
+                    </h3>
                     <p className="text-muted-foreground text-sm">
-                      منتجاتك تظهر فوراً في مول سرعلي العام، مما يضمن لك وصولاً أسرع للعملاء.
+                      {t?.vendor?.features?.growthDesc || "Your products appear instantly in Sarraly Mall, ensuring faster reach to customers."}
                     </p>
                   </div>
                 </div>
@@ -97,10 +106,12 @@ const BecomeVendor = () => {
                 {/* Feature 4 */}
                 <div className="flex items-start gap-4 p-4 rounded-lg bg-muted/50">
                   <AlertCircle className="w-8 h-8 text-primary flex-shrink-0 mt-1" />
-                  <div>
-                    <h3 className="font-bold text-lg mb-1">أدوات تسويقية ذكية</h3>
+                  <div className="text-start">
+                    <h3 className="font-bold text-lg mb-1">
+                      {t?.vendor?.features?.marketingTitle || "Smart Marketing Tools"}
+                    </h3>
                     <p className="text-muted-foreground text-sm">
-                      اصنع العروض والخصومات واجذب المشترين لمتجرك بسهولة.
+                      {t?.vendor?.features?.marketingDesc || "Create offers and discounts to attract buyers to your store with ease."}
                     </p>
                   </div>
                 </div>
@@ -152,26 +163,26 @@ const BecomeVendor = () => {
       pending: {
         icon: Clock,
         iconColor: 'text-yellow-500',
-        title: 'طلبك قيد المراجعة',
-        description: 'تم استلام طلبك وهو الآن قيد المراجعة من قبل فريق الإدارة. سيتم إخطارك عند الموافقة.'
+        title: t?.vendor?.status?.pending || 'Your Application is Under Review',
+        description: t?.vendor?.status?.pendingDesc || 'Your application has been received and is now under review by the management team.'
       },
       approved: {
         icon: CheckCircle,
         iconColor: 'text-green-500',
-        title: 'تمت الموافقة!',
-        description: 'تهانينا! تمت الموافقة على طلبك. يمكنك الآن الوصول إلى لوحة تحكم البائع.'
+        title: t?.vendor?.status?.approved || 'Approved!',
+        description: t?.vendor?.status?.approvedDesc || 'Congratulations! Your application has been approved.'
       },
       rejected: {
         icon: XCircle,
         iconColor: 'text-red-500',
-        title: 'تم رفض الطلب',
-        description: 'للأسف تم رفض طلبك. يرجى التواصل مع الإدارة لمعرفة السبب وإمكانية إعادة التقديم.'
+        title: t?.vendor?.status?.rejected || 'Application Rejected',
+        description: t?.vendor?.status?.rejectedDesc || 'Unfortunately, your application has been rejected.'
       },
       suspended: {
         icon: AlertCircle,
         iconColor: 'text-orange-500',
-        title: 'حساب موقوف',
-        description: 'تم إيقاف حساب البائع الخاص بك مؤقتاً. يرجى التواصل مع الإدارة.'
+        title: t?.vendor?.status?.suspended || 'Account Suspended',
+        description: t?.vendor?.status?.suspendedDesc || 'Your vendor account has been temporarily suspended.'
       }
     };
 
@@ -180,7 +191,7 @@ const BecomeVendor = () => {
 
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-12">
+        <div dir={direction} className="container mx-auto px-4 py-12">
           <Card className="max-w-lg mx-auto">
             <CardHeader className="text-center">
               <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${profile.status === 'approved' ? 'bg-green-100' :
@@ -194,9 +205,11 @@ const BecomeVendor = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                <div>
+                <div className="text-start">
                   <p className="font-medium">{profile.store_name}</p>
-                  <p className="text-sm text-muted-foreground">اسم المتجر</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t?.vendor?.form?.storeName || "Store Name"}
+                  </p>
                 </div>
                 <Badge className={getStatusColor(profile.status)}>
                   {getStatusLabel(profile.status)}
@@ -224,13 +237,13 @@ const BecomeVendor = () => {
                     window.location.href = '/vendor';
                   }}
                 >
-                  <Store className="w-4 h-4 mr-2" />
-                  الذهاب إلى لوحة التحكم
+                  <Store className={`w-4 h-4 ${direction === 'rtl' ? 'ml-2' : 'mr-2'}`} />
+                  {t?.vendor?.status?.goToDashboard || "Go to Dashboard"}
                 </Button>
               )}
 
               <Button variant="outline" className="w-full" onClick={() => navigate('/')}>
-                العودة للرئيسية
+                {t?.vendor?.status?.backToHome || "Back to Home"}
               </Button>
             </CardContent>
           </Card>
@@ -242,11 +255,13 @@ const BecomeVendor = () => {
   // No profile - show apply form
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-12">
+      <div dir={direction} className="container mx-auto px-4 py-12">
         <div className="max-w-2xl mx-auto text-center mb-8">
-          <h1 className="text-3xl font-bold mb-4">سجل للحصول علي متجرك الالكتروني الخاص بك</h1>
+          <h1 className="text-3xl font-bold mb-4">
+            {t?.vendor?.form?.mainTitle || "Register to Get Your Own Online Store"}
+          </h1>
           <p className="text-muted-foreground">
-            ابدأ رحلتك معنا وقم ببيع منتجاتك لآلاف العملاء. تقدم بطلبك الآن وسيتم مراجعته من قبل فريقنا.
+            {t?.vendor?.form?.subTitle || "Start your journey with us and sell your products to thousands of customers."}
           </p>
         </div>
 

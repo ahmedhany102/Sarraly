@@ -4,6 +4,7 @@ import { X, ChevronDown, ChevronLeft, Package, Layers, LogIn } from 'lucide-reac
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguageSafe } from '@/contexts/LanguageContext';
 
 interface Category {
     id: string;
@@ -42,6 +43,7 @@ const VendorCategoryMenu: React.FC<VendorCategoryMenuProps> = ({
 }) => {
     const navigate = useNavigate();
     const { user } = useAuth();
+    const { t } = useLanguageSafe();
     const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
     const toggleExpand = (categoryId: string) => {
@@ -116,7 +118,7 @@ const VendorCategoryMenu: React.FC<VendorCategoryMenuProps> = ({
                         )}
                     >
                         <Layers className="w-5 h-5 shrink-0" />
-                        <span>جميع المنتجات</span>
+                        <span>{t?.sections?.allProducts || 'All Products'}</span>
                     </button>
 
                     {/* Main Categories */}
@@ -179,7 +181,7 @@ const VendorCategoryMenu: React.FC<VendorCategoryMenuProps> = ({
                     {mainCategories.length === 0 && (
                         <div className="text-center py-8 text-muted-foreground">
                             <Package className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                            <p>لا توجد فئات متاحة</p>
+                            <p>{t?.common?.noResults || 'No categories available'}</p>
                         </div>
                     )}
                 </div>
@@ -196,7 +198,7 @@ const VendorCategoryMenu: React.FC<VendorCategoryMenuProps> = ({
                             variant="default"
                         >
                             <LogIn className="w-4 h-4" />
-                            تسجيل الدخول
+                            {t?.nav?.login || 'Login'}
                         </Button>
                     </div>
                 )}

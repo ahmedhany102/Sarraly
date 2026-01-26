@@ -39,9 +39,14 @@ export const translations = {
             add: "إضافة",
             viewAll: "عرض المزيد",
             backToHome: "العودة للرئيسية",
+            backToStore: "العودة للمتجر",
+            productNotFound: "المنتج غير موجود",
             noResults: "لا توجد نتائج",
             currency: "ج.م",
-            guest: "زائر"
+            guest: "زائر",
+            optional: "اختياري",
+            calculating: "جاري الحساب...",
+            unknownError: "خطأ غير معروف"
         },
 
         // Products
@@ -61,7 +66,7 @@ export const translations = {
             bestSeller: "الأكثر مبيعاً",
             freeShipping: "شحن مجاني",
             fastDelivery: "شحن سريع",
-            soldBy: "بواسطة",
+            soldBy: "البائع",
             // Product Details
             description: "الوصف",
             specifications: "المواصفات",
@@ -80,6 +85,9 @@ export const translations = {
             subCategories: "الأقسام الفرعية",
             viewMore: "عرض المزيد",
             noProducts: "لا توجد منتجات",
+            noDescription: "لا يوجد وصف متاح لهذا المنتج",
+            additionalInfo: "معلومات إضافية",
+            availability: "الحالة",
             // Store
             vendor: "البائع",
             visitStore: "زيارة المتجر",
@@ -88,10 +96,36 @@ export const translations = {
             followers: "متابعون"
         },
 
+        // Product Details Page
+        productDetails: {
+            price: "السعر",
+            currency: "جنيه",
+            color: "اللون",
+            size: "المقاس",
+            quantity: "الكمية",
+            addToCart: "أضف للسلة",
+            buyNow: "شراء الآن",
+            description: "وصف المنتج",
+            reviews: "التقييمات",
+            sku: "رمز المنتج (SKU)",
+            category: "القسم",
+            selectOption: "يجب اختيار مقاس ولون",
+            optionUnavailable: "هذا الخيار غير متاح",
+            inStock: "متوفر",
+            outOfStock: "غير متوفر",
+            selectSize: "يرجى اختيار المقاس",
+            selectColor: "يرجى اختيار اللون",
+            vendor: "البائع",
+            moreFromStore: "المزيد من هذا المتجر"
+        },
+
         // Cart & Checkout
         cart: {
             title: "سلة التسوق",
-            empty: "السلة فارغة",
+            yourCart: "سلتك",
+            empty: "سلة التسوق فارغة",
+            emptyDesc: "أضف منتجات للسلة لإتمام الشراء",
+            browseProducts: "تصفح المنتجات",
             subtotal: "المجموع الفرعي",
             shipping: "الشحن",
             total: "الإجمالي",
@@ -100,7 +134,105 @@ export const translations = {
             clearCart: "إفراغ السلة",
             removeItem: "حذف المنتج",
             orderSummary: "ملخص الطلب",
-            addedToCart: "تم إضافة المنتج إلى السلة"
+            addedToCart: "تم إضافة المنتج إلى السلة",
+            remove: "حذف",
+            image: "صورة",
+            product: "المنتج",
+            products: "المنتجات",
+            qty: "الكمية",
+            shoppingCart: "سلة التسوق",
+            proceedToCheckout: "إتمام الشراء",
+            // New keys for Cart.tsx
+            itemRemoved: "تم حذف المنتج من السلة",
+            removeFailed: "فشل في حذف المنتج",
+            cartCleared: "تم إفراغ السلة",
+            clearFailed: "فشل في إفراغ السلة",
+            loginRequired: "الرجاء تسجيل الدخول لإكمال الطلب",
+            orderSuccess: "تم إرسال الطلب بنجاح!",
+            enterCouponCode: "الرجاء إدخال كود الخصم",
+            couponApplied: "تم تطبيق كود الخصم بنجاح",
+            invalidCoupon: "كود الخصم غير صالح",
+            couponError: "حدث خطأ أثناء التحقق من كود الخصم",
+            backToCart: "العودة للسلة",
+            completeOrder: "أكمل طلبك",
+            seeFormBelow: "انظر النموذج أدناه",
+            discount: "خصم",
+            couponAppliedLabel: "تم تطبيق الكوبون",
+            apply: "تطبيق",
+            calculatedAtCheckout: "يحسب عند الدفع",
+            securePayment: "دفع آمن",
+            couponExpired: "كود الخصم غير صالح أو انتهت صلاحيته. الرجاء إزالته والمحاولة مرة أخرى."
+        },
+
+        // Checkout
+        checkout: {
+            title: "إتمام الطلب",
+            billingDetails: "تفاصيل الفاتورة",
+            fullName: "الاسم بالكامل",
+            fullNamePlaceholder: "اسمك الكامل",
+            email: "البريد الإلكتروني",
+            emailPlaceholder: "البريد الإلكتروني",
+            phone: "رقم الهاتف",
+            phonePlaceholder: "رقم هاتفك",
+            address: "العنوان",
+            street: "العنوان بالتفصيل (المبنى، الشقة، الشارع)",
+            streetPlaceholder: "مثال: عمارة 5، شقة 12، شارع النصر",
+            streetRequired: "العنوان بالتفصيل مطلوب",
+            city: "المدينة",
+            cityPlaceholder: "مثال: مدينة نصر، المعادي",
+            cityRequired: "المدينة مطلوبة",
+            governorate: "المحافظة",
+            selectGovernorate: "اختر المحافظة",
+            governorateRequired: "المحافظة مطلوبة",
+            zipCode: "الرمز البريدي",
+            zipCodePlaceholder: "الرمز البريدي (اختياري)",
+            placeOrder: "تأكيد الطلب",
+            processing: "جاري معالجة الطلب...",
+            orderSummary: "ملخص الطلب",
+            paymentMethod: "طريقة الدفع",
+            cod: "الدفع عند الاستلام",
+            orderPlaced: "تم إرسال الطلب بنجاح!",
+            orderFailed: "فشل في إرسال الطلب: ",
+            orderNumber: "رقم الطلب",
+            notes: "ملاحظات الطلب",
+            notesPlaceholder: "أي تعليمات خاصة للتوصيل؟"
+        },
+
+        // Orders
+        orders: {
+            title: "طلباتي",
+            myOrders: "طلباتي",
+            orderNumber: "طلب",
+            orderedOn: "تم الطلب في",
+            date: "التاريخ",
+            status: "الحالة",
+            total: "الإجمالي",
+            viewDetails: "عرض التفاصيل",
+            noOrders: "لم تقم بأي طلبات بعد",
+            trackOrder: "تتبع الطلب",
+            // Order actions
+            cancel: "إلغاء",
+            cancelling: "جاري الإلغاء...",
+            cancelOrder: "إلغاء الطلب",
+            cancelConfirm: "هل أنت متأكد من إلغاء الطلب رقم #{orderNumber}؟ لا يمكن التراجع عن هذا الإجراء.",
+            keepOrder: "الإبقاء على الطلب",
+            yesCancelOrder: "نعم، إلغاء الطلب",
+            // Order tabs
+            activeOrders: "الطلبات النشطة",
+            cancelledOrders: "الطلبات الملغاة",
+            noActiveOrders: "لا توجد طلبات نشطة",
+            noCancelledOrders: "لا توجد طلبات ملغاة",
+            // Order details
+            shippingAddress: "عنوان الشحن",
+            notes: "ملاحظات",
+            statusMap: {
+                pending: "قيد الانتظار",
+                processing: "جاري التجهيز",
+                shipped: "تم الشحن",
+                delivered: "تم التوصيل",
+                cancelled: "ملغي",
+                confirmed: "تم التأكيد"
+            }
         },
 
         // Auth
@@ -164,6 +296,35 @@ export const translations = {
             developedBy: "طُوّر بواسطة"
         },
 
+        // Section Headers
+        sections: {
+            bestSellers: "الأكثر مبيعاً",
+            bestSeller: "الأكثر مبيعاً",
+            hotDeals: "عروض ساخنة 🔥",
+            newArrivals: "وصل حديثاً",
+            featured: "مميز",
+            browseCategories: "تصفح حسب الفئة",
+            lastViewed: "شوهد مؤخراً",
+            recentlyViewed: "شوهد مؤخراً",
+            recommended: "موصى به",
+            trending: "الأكثر رواجاً",
+            similarProducts: "منتجات مشابهة",
+            moreFromVendor: "المزيد من نفس المتجر",
+            moreFromStore: "المزيد من هذا المتجر",
+            categoryProducts: "منتجات القسم",
+            manualSection: "قسم مخصص",
+            allProducts: "جميع المنتجات",
+            allCategories: "كل الفئات",
+            shopByCategory: "تسوق حسب الفئة"
+        },
+
+        // Store
+        store: {
+            defaultName: "المتجر",
+            visitStore: "زيارة المتجر",
+            noCategories: "لا توجد فئات متاحة"
+        },
+
         // Vendor
         vendor: {
             dashboard: "لوحة تحكم البائع",
@@ -171,7 +332,56 @@ export const translations = {
             products: "المنتجات",
             orders: "الطلبات",
             analytics: "الإيرادات",
-            settings: "الإعدادات"
+            settings: "الإعدادات",
+            // Landing & Registration
+            heroTitle: "امتلك متجرك الخاص بمواصفات عالمية.. في لحظات",
+            heroSubtitle: "لا تضيع وقتك في البرمجة. احصل فوراً على لوحة تحكم شاملة لإدارة منتجاتك ومبيعاتك، واعرض بضاعتك تلقائياً أمام آلاف الزوار في مول سرعلي الإلكتروني",
+            startSelling: "امتلك متجرك الآن",
+            login: "تسجيل الدخول",
+            whySarraly: "لماذا سرعلي؟",
+            features: {
+                controlTitle: "تحكم واسع وشامل",
+                controlDesc: "أدر مخزونك، حدد أسعارك، وتابع أرباحك بدقة من مكان واحد.",
+                launchTitle: "انطلاقة في 30 ثانية",
+                launchDesc: "سجل حسابك وابدأ البيع فوراً، لا توجد تعقيدات تقنية.",
+                growthTitle: "توسع بلا حدود",
+                growthDesc: "منتجاتك تظهر فوراً في مول سرعلي العام، مما يضمن لك وصولاً أسرع للعملاء.",
+                marketingTitle: "أدوات تسويقية ذكية",
+                marketingDesc: "اصنع العروض والخصومات واجذب المشترين لمتجرك بسهولة."
+            },
+            form: {
+                mainTitle: "سجل للحصول علي متجرك الالكتروني الخاص بك",
+                subTitle: "ابدأ رحلتك معنا وقم ببيع منتجاتك لآلاف العملاء. تقدم بطلبك الآن وسيتم مراجعته من قبل فريقنا.",
+                sectionHeader: "املأ البيانات التالية",
+                sectionSubHeader: "أكمل جميع الحقول المطلوبة للحصول على متجرك الخاص",
+                storeName: "اسم المتجر",
+                storeLogo: "شعار المتجر (اختياري)",
+                uploadLogo: "رفع شعار المتجر",
+                logoHint: "يُضغط تلقائياً | الحد الأقصى 5 ميجابايت",
+                storeDesc: "وصف المتجر",
+                phone: "رقم الهاتف",
+                address: "العنوان",
+                extraInfo: "معلومات إضافية عن نشاطك التجاري",
+                salesLink: "رابط صفحة مبيعاتك الحالية",
+                salesLinkPlaceholder: "فيسبوك، انستجرام، أو أي منصة أخرى",
+                hasPhysicalStore: "هل تمتلك محلاً تجارياً على أرض الواقع؟",
+                yes: "نعم",
+                no: "لا",
+                notes: "ملاحظات إضافية (اختياري)",
+                submit: "تقديم الطلب"
+            },
+            status: {
+                pending: "طلبك قيد المراجعة",
+                pendingDesc: "تم استلام طلبك وهو الآن قيد المراجعة من قبل فريق الإدارة. سيتم إخطارك عند الموافقة.",
+                approved: "تمت الموافقة!",
+                approvedDesc: "تهانينا! تمت الموافقة على طلبك. يمكنك الآن الوصول إلى لوحة تحكم البائع.",
+                rejected: "تم رفض الطلب",
+                rejectedDesc: "للأسف تم رفض طلبك. يرجى التواصل مع الإدارة لمعرفة السبب وإمكانية إعادة التقديم.",
+                suspended: "حساب موقوف",
+                suspendedDesc: "تم إيقاف حساب البائع الخاص بك مؤقتاً. يرجى التواصل مع الإدارة.",
+                goToDashboard: "الذهاب إلى لوحة التحكم",
+                backToHome: "العودة للرئيسية"
+            }
         }
     },
 
@@ -215,9 +425,14 @@ export const translations = {
             add: "Add",
             viewAll: "View All",
             backToHome: "Back to Home",
+            backToStore: "Back to Store",
+            productNotFound: "Product not found",
             noResults: "No results found",
             currency: "EGP",
-            guest: "Guest"
+            guest: "Guest",
+            optional: "optional",
+            calculating: "Calculating...",
+            unknownError: "Unknown error"
         },
 
         // Products
@@ -237,7 +452,7 @@ export const translations = {
             bestSeller: "Best Seller",
             freeShipping: "Free Shipping",
             fastDelivery: "Fast Delivery",
-            soldBy: "by",
+            soldBy: "Seller",
             // Product Details
             description: "Description",
             specifications: "Specifications",
@@ -255,6 +470,9 @@ export const translations = {
             subCategories: "Sub Categories",
             viewMore: "View More",
             noProducts: "No products found",
+            noDescription: "No description available for this product",
+            additionalInfo: "Additional Information",
+            availability: "Status",
             moreFromStore: "More from this Store",
             // Store
             vendor: "Seller",
@@ -264,10 +482,36 @@ export const translations = {
             followers: "followers"
         },
 
+        // Product Details Page
+        productDetails: {
+            price: "Price",
+            currency: "EGP",
+            color: "Color",
+            size: "Size",
+            quantity: "Quantity",
+            addToCart: "Add to Cart",
+            buyNow: "Buy Now",
+            description: "Product Description",
+            reviews: "Reviews",
+            sku: "SKU",
+            category: "Category",
+            selectOption: "Please select size and color",
+            optionUnavailable: "This option is unavailable",
+            inStock: "In Stock",
+            outOfStock: "Out of Stock",
+            selectSize: "Please select size",
+            selectColor: "Please select color",
+            vendor: "Seller",
+            moreFromStore: "More from this Store"
+        },
+
         // Cart & Checkout
         cart: {
             title: "Shopping Cart",
+            yourCart: "Your Cart",
             empty: "Your cart is empty",
+            emptyDesc: "Add products to cart to complete purchase",
+            browseProducts: "Browse Products",
             subtotal: "Subtotal",
             shipping: "Shipping",
             total: "Total",
@@ -276,7 +520,105 @@ export const translations = {
             clearCart: "Clear Cart",
             removeItem: "Remove Item",
             orderSummary: "Order Summary",
-            addedToCart: "Product added to cart"
+            addedToCart: "Product added to cart",
+            remove: "Remove",
+            image: "Image",
+            product: "Product",
+            products: "Products",
+            qty: "Qty",
+            shoppingCart: "Shopping Cart",
+            proceedToCheckout: "Proceed to Checkout",
+            // New keys for Cart.tsx
+            itemRemoved: "Item removed from cart",
+            removeFailed: "Failed to remove item",
+            cartCleared: "Cart cleared",
+            clearFailed: "Failed to clear cart",
+            loginRequired: "Please login to complete your order",
+            orderSuccess: "Order submitted successfully!",
+            enterCouponCode: "Please enter a coupon code",
+            couponApplied: "Coupon applied successfully",
+            invalidCoupon: "Invalid coupon code",
+            couponError: "Error verifying coupon code",
+            backToCart: "Back to Cart",
+            completeOrder: "Complete Your Order",
+            seeFormBelow: "See form below",
+            discount: "Discount",
+            couponAppliedLabel: "Coupon applied",
+            apply: "Apply",
+            calculatedAtCheckout: "Calculated at checkout",
+            securePayment: "Secure Payment",
+            couponExpired: "Coupon is invalid or expired. Please remove it and try again."
+        },
+
+        // Checkout
+        checkout: {
+            title: "Checkout",
+            billingDetails: "Billing Details",
+            fullName: "Full Name",
+            fullNamePlaceholder: "Your full name",
+            email: "Email",
+            emailPlaceholder: "Your email",
+            phone: "Phone Number",
+            phonePlaceholder: "Your phone number",
+            address: "Address",
+            street: "Address Details (Building, Apartment, Street)",
+            streetPlaceholder: "Example: Building 5, Apt 12, Victory Street",
+            streetRequired: "Street address is required",
+            city: "City",
+            cityPlaceholder: "Example: Nasr City, Maadi",
+            cityRequired: "City is required",
+            governorate: "Governorate",
+            selectGovernorate: "Select Governorate",
+            governorateRequired: "Governorate is required",
+            zipCode: "Zip Code",
+            zipCodePlaceholder: "Zip Code (optional)",
+            placeOrder: "Place Order",
+            processing: "Processing order...",
+            orderSummary: "Order Summary",
+            paymentMethod: "Payment Method",
+            cod: "Cash on Delivery",
+            orderPlaced: "Order placed successfully!",
+            orderFailed: "Failed to place order: ",
+            orderNumber: "Order #",
+            notes: "Order Notes",
+            notesPlaceholder: "Any special delivery instructions?"
+        },
+
+        // Orders
+        orders: {
+            title: "My Orders",
+            myOrders: "My Orders",
+            orderNumber: "Order",
+            orderedOn: "Ordered on",
+            date: "Date",
+            status: "Status",
+            total: "Total",
+            viewDetails: "View Details",
+            noOrders: "You have no orders yet",
+            trackOrder: "Track Order",
+            // Order actions
+            cancel: "Cancel",
+            cancelling: "Cancelling...",
+            cancelOrder: "Cancel Order",
+            cancelConfirm: "Are you sure you want to cancel order #{orderNumber}? This action cannot be undone.",
+            keepOrder: "Keep Order",
+            yesCancelOrder: "Yes, Cancel Order",
+            // Order tabs
+            activeOrders: "Active Orders",
+            cancelledOrders: "Cancelled Orders",
+            noActiveOrders: "No active orders",
+            noCancelledOrders: "No cancelled orders",
+            // Order details
+            shippingAddress: "Shipping Address",
+            notes: "Notes",
+            statusMap: {
+                pending: "Pending",
+                processing: "Processing",
+                shipped: "Shipped",
+                delivered: "Delivered",
+                cancelled: "Cancelled",
+                confirmed: "Confirmed"
+            }
         },
 
         // Auth
@@ -340,6 +682,35 @@ export const translations = {
             developedBy: "Developed by"
         },
 
+        // Section Headers
+        sections: {
+            bestSellers: "Best Sellers",
+            bestSeller: "Best Sellers",
+            hotDeals: "Hot Deals 🔥",
+            newArrivals: "New Arrivals",
+            featured: "Featured",
+            browseCategories: "Browse by Category",
+            lastViewed: "Recently Viewed",
+            recentlyViewed: "Recently Viewed",
+            recommended: "Recommended for You",
+            trending: "Trending Now",
+            similarProducts: "Similar Products",
+            moreFromVendor: "More from this Store",
+            moreFromStore: "More from this Store",
+            categoryProducts: "Category Products",
+            manualSection: "Curated Collection",
+            allProducts: "All Products",
+            allCategories: "All Categories",
+            shopByCategory: "Shop by Category"
+        },
+
+        // Store
+        store: {
+            defaultName: "Store",
+            visitStore: "Visit Store",
+            noCategories: "No categories available"
+        },
+
         // Vendor
         vendor: {
             dashboard: "Vendor Dashboard",
@@ -347,7 +718,56 @@ export const translations = {
             products: "Products",
             orders: "Orders",
             analytics: "Analytics",
-            settings: "Settings"
+            settings: "Settings",
+            // Landing & Registration
+            heroTitle: "Own Your World-Class Store.. In Moments",
+            heroSubtitle: "Don't waste time on coding. Get instant access to a comprehensive dashboard to manage your products and sales, and automatically display your inventory to thousands of visitors in Sarraly Mall",
+            startSelling: "Get Your Store Now",
+            login: "Login",
+            whySarraly: "Why Sarraly?",
+            features: {
+                controlTitle: "Comprehensive Control",
+                controlDesc: "Manage your inventory, set your prices, and track your profits accurately from one place.",
+                launchTitle: "Launch in 30 Seconds",
+                launchDesc: "Register your account and start selling immediately, no technical complications.",
+                growthTitle: "Unlimited Growth",
+                growthDesc: "Your products appear instantly in Sarraly Mall, ensuring faster reach to customers.",
+                marketingTitle: "Smart Marketing Tools",
+                marketingDesc: "Create offers and discounts to attract buyers to your store with ease."
+            },
+            form: {
+                mainTitle: "Register to Get Your Own Online Store",
+                subTitle: "Start your journey with us and sell your products to thousands of customers. Submit your application now and it will be reviewed by our team.",
+                sectionHeader: "Fill in the Details",
+                sectionSubHeader: "Complete all required fields to get your own store",
+                storeName: "Store Name",
+                storeLogo: "Store Logo (Optional)",
+                uploadLogo: "Upload Store Logo",
+                logoHint: "Auto-compressed | Max 5MB",
+                storeDesc: "Store Description",
+                phone: "Phone Number",
+                address: "Address",
+                extraInfo: "Additional Information About Your Business",
+                salesLink: "Your Current Sales Page Link",
+                salesLinkPlaceholder: "Facebook, Instagram, or any other platform",
+                hasPhysicalStore: "Do you have a physical retail store?",
+                yes: "Yes",
+                no: "No",
+                notes: "Additional Notes (Optional)",
+                submit: "Submit Application"
+            },
+            status: {
+                pending: "Your Application is Under Review",
+                pendingDesc: "Your application has been received and is now under review by the management team. You will be notified upon approval.",
+                approved: "Approved!",
+                approvedDesc: "Congratulations! Your application has been approved. You can now access your vendor dashboard.",
+                rejected: "Application Rejected",
+                rejectedDesc: "Unfortunately, your application has been rejected. Please contact management to learn the reason and the possibility of reapplying.",
+                suspended: "Account Suspended",
+                suspendedDesc: "Your vendor account has been temporarily suspended. Please contact management.",
+                goToDashboard: "Go to Dashboard",
+                backToHome: "Back to Home"
+            }
         }
     }
 } as const;

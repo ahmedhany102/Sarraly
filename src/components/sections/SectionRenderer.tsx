@@ -7,6 +7,7 @@ import CategoryGrid from './CategoryGrid';
 import ProductCarousel from './ProductCarousel';
 import { useBestSellers, useHotDeals, useLastViewed, useCategoryProducts, useSectionProducts } from '@/hooks/useSections';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguageSafe } from '@/contexts/LanguageContext';
 
 interface SectionRendererProps {
   section: Section;
@@ -25,10 +26,11 @@ const CategoryGridSection: React.FC<{ config: Section['config']; onCategorySelec
 
 const BestSellerSection: React.FC<{ section: Section; config: Section['config']; vendorId?: string }> = ({ section, config, vendorId }) => {
   const { products, loading } = useBestSellers(vendorId, config.limit || 12);
+  const { t } = useLanguageSafe();
 
   return (
     <ProductCarousel
-      title="Best Sellers"
+      title={t?.sections?.bestSellers || "Best Sellers"}
       products={products}
       loading={loading}
       variant="best_seller"
@@ -40,10 +42,11 @@ const BestSellerSection: React.FC<{ section: Section; config: Section['config'];
 
 const HotDealsSection: React.FC<{ section: Section; config: Section['config']; vendorId?: string }> = ({ section, config, vendorId }) => {
   const { products, loading } = useHotDeals(vendorId, config.limit || 12);
+  const { t } = useLanguageSafe();
 
   return (
     <ProductCarousel
-      title="Hot Deals 🔥"
+      title={t?.sections?.hotDeals || "Hot Deals 🔥"}
       products={products}
       loading={loading}
       variant="hot_deals"
@@ -57,13 +60,14 @@ const HotDealsSection: React.FC<{ section: Section; config: Section['config']; v
 const LastViewedSection: React.FC<{ config: Section['config']; vendorId?: string }> = ({ config, vendorId }) => {
   const { user } = useAuth();
   const { products, loading } = useLastViewed(vendorId, config.limit || 10);
+  const { t } = useLanguageSafe();
 
   // Don't show if not logged in or no products
   if (!user || (!loading && products.length === 0)) return null;
 
   return (
     <ProductCarousel
-      title="Recently Viewed"
+      title={t?.sections?.recentlyViewed || "Recently Viewed"}
       products={products}
       loading={loading}
       icon={<Clock className="w-5 h-5" />}
@@ -73,12 +77,13 @@ const LastViewedSection: React.FC<{ config: Section['config']; vendorId?: string
 
 const CategoryProductsSection: React.FC<{ section: Section; config: Section['config']; vendorId?: string }> = ({ section, config, vendorId }) => {
   const { products, loading } = useCategoryProducts(config.category_id || '', vendorId, config.limit || 12);
+  const { t } = useLanguageSafe();
 
   if (!config.category_id) return null;
 
   return (
     <ProductCarousel
-      title="Category Products"
+      title={t?.sections?.categoryProducts || "Category Products"}
       products={products}
       loading={loading}
       icon={<Tag className="w-5 h-5" />}

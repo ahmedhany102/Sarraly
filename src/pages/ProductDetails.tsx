@@ -388,15 +388,15 @@ const ProductDetails = () => {
   const handleAddToCart = async () => {
     if (!product || !canAddToCart) {
       if (hasVariants && !variantSelection.size) {
-        toast.error('يرجى اختيار اللون والمقاس');
+        toast.error(t?.productDetails?.selectOption || 'Please select size and color');
       } else {
-        toast.error('المنتج غير متوفر حالياً');
+        toast.error(t?.productDetails?.outOfStock || 'Product currently unavailable');
       }
       return;
     }
 
     if (quantity > currentStock) {
-      toast.error(`عذراً، المتاح فقط ${currentStock} قطعة`);
+      toast.error(`${t?.products?.fewLeft?.replace('{count}', currentStock.toString()) || `Sorry, only ${currentStock} available`}`);
       return;
     }
 
@@ -425,7 +425,7 @@ const ProductDetails = () => {
         is_fast_shipping: (product as any).is_fast_shipping || false,
       };
 
-      const cartSize = variantSelection.size || 'متاح';
+      const cartSize = variantSelection.size || (t?.productDetails?.inStock || 'Available');
       const cartColor = variantSelection.color || '';
       const success = await addToCart(productForCart, cartSize, cartColor, quantity, discountedPrice);
 
@@ -509,9 +509,9 @@ const ProductDetails = () => {
           />
         )}
         <div className="text-center py-20">
-          <h2 className="text-2xl font-bold mb-4">المنتج غير موجود</h2>
+          <h2 className="text-2xl font-bold mb-4">{t?.common?.productNotFound || 'Product not found'}</h2>
           <Button onClick={() => isVendorContext && vendorSlug ? navigate(`/store/${vendorSlug}`) : navigate('/')}>
-            {isVendorContext ? 'العودة للمتجر' : 'العودة للرئيسية'}
+            {isVendorContext ? (t?.common?.backToStore || 'Back to Store') : (t?.common?.backToHome || 'Back to Home')}
           </Button>
         </div>
       </Layout>
@@ -567,15 +567,15 @@ const ProductDetails = () => {
                 <>
                   <button
                     onClick={goToPrevImage}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-md transition-all"
+                    className="absolute start-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-md transition-all"
                   >
-                    <ChevronLeft className="h-5 w-5" />
+                    {direction === 'rtl' ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
                   </button>
                   <button
                     onClick={goToNextImage}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-md transition-all"
+                    className="absolute end-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-md transition-all"
                   >
-                    <ChevronRight className="h-5 w-5" />
+                    {direction === 'rtl' ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
                   </button>
 
                   {/* Image Counter */}
@@ -621,27 +621,27 @@ const ProductDetails = () => {
             {product.vendor_store_name && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Store className="h-4 w-4" />
-                <span>البائع: {product.vendor_store_name}</span>
+                <span>{t?.products?.soldBy || 'Seller'}: {product.vendor_store_name}</span>
               </div>
             )}
 
             {/* Title and Price */}
             <div>
-              <h1 className="text-2xl font-bold">{product.name}</h1>
-              <div className="flex items-center gap-2 mt-2">
+              <h1 className="text-2xl font-bold text-start">{product.name}</h1>
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
                 {hasDiscount ? (
                   <>
                     <span className="text-muted-foreground line-through">
-                      {currentPrice} جنيه
+                      {currentPrice} {t?.productDetails?.currency || 'EGP'}
                     </span>
                     <span className="text-xl font-bold text-green-600">
-                      {discountedPrice.toFixed(0)} جنيه
+                      {discountedPrice.toFixed(0)} {t?.productDetails?.currency || 'EGP'}
                     </span>
-                    <Badge className="bg-destructive">خصم {product.discount}%</Badge>
+                    <Badge className="bg-destructive">{t?.products?.discount || 'OFF'} {product.discount}%</Badge>
                   </>
                 ) : (
                   <span className="text-xl font-bold text-green-600">
-                    {currentPrice} جنيه
+                    {currentPrice} {t?.productDetails?.currency || 'EGP'}
                   </span>
                 )}
               </div>
@@ -666,7 +666,7 @@ const ProductDetails = () => {
             {/* Quantity */}
             {!isOutOfStock && canAddToCart && (
               <div>
-                <h3 className="text-sm font-medium mb-2">الكمية:</h3>
+                <h3 className="text-sm font-medium mb-2 text-start">{t?.productDetails?.quantity || 'Quantity'}:</h3>
                 <div className="flex items-center">
                   <Button
                     variant="outline"
@@ -698,50 +698,50 @@ const ProductDetails = () => {
             >
               {addingToCart ? (
                 <span className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" /> جاري الإضافة...
+                  <Loader2 className="h-4 w-4 animate-spin" /> {t?.common?.loading || 'Adding...'}
                 </span>
               ) : !hasVariants && isOutOfStock ? (
-                'نفذت الكمية'
+                t?.products?.outOfStock || 'Out of Stock'
               ) : hasVariants && !variantSelection.size ? (
-                'يجب اختيار مقاس ولون'
+                t?.productDetails?.selectOption || 'Please select size and color'
               ) : hasVariants && variantSelection.stock === 0 ? (
-                'هذا الخيار غير متاح'
+                t?.productDetails?.optionUnavailable || 'This option is unavailable'
               ) : (
                 <span className="flex items-center gap-2">
-                  <ShoppingCart className="h-4 w-4" /> إضافة إلى العربة
+                  <ShoppingCart className="h-4 w-4" /> {t?.products?.addToCart || 'Add to Cart'}
                 </span>
               )}
             </Button>
 
             {/* Description */}
             <div>
-              <h3 className="text-md font-medium mb-2">وصف المنتج:</h3>
+              <h3 className="text-md font-medium mb-2">{t?.productDetails?.description || 'Product Description'}:</h3>
               {product.description ? (
                 <p className="text-muted-foreground whitespace-pre-line bg-muted p-3 rounded-md">
                   {product.description}
                 </p>
               ) : (
-                <p className="text-muted-foreground italic">لا يوجد وصف متاح لهذا المنتج.</p>
+                <p className="text-muted-foreground italic">{t?.products?.noDescription || 'No description available for this product.'}</p>
               )}
             </div>
 
             {/* Additional information */}
             <div>
-              <h3 className="text-md font-medium mb-2">معلومات إضافية:</h3>
+              <h3 className="text-md font-medium mb-2">{t?.products?.additionalInfo || 'Additional Information'}:</h3>
               <div className="text-sm text-muted-foreground space-y-1 bg-muted p-3 rounded-md">
                 {product.category && (
                   <p>
-                    <span className="font-semibold">التصنيف: </span>
+                    <span className="font-semibold">{t?.productDetails?.category || 'Category'}: </span>
                     {product.category}
                   </p>
                 )}
                 <p>
-                  <span className="font-semibold">الكود: </span>
+                  <span className="font-semibold">{t?.productDetails?.sku || 'SKU'}: </span>
                   {product.id?.substring(0, 8) || '-'}
                 </p>
                 <p>
-                  <span className="font-semibold">الحالة: </span>
-                  {isOutOfStock ? 'غير متوفر' : 'متوفر'}
+                  <span className="font-semibold">{t?.products?.availability || 'Status'}: </span>
+                  {isOutOfStock ? (t?.productDetails?.outOfStock || 'Out of Stock') : (t?.productDetails?.inStock || 'In Stock')}
                 </p>
               </div>
             </div>

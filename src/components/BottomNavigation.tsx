@@ -34,8 +34,8 @@ const BottomNavigation: React.FC = () => {
   const { isVendorContext, vendorSlug } = vendorContext;
 
   // Check if we're on admin or vendor dashboard pages
-  const isOnAdminPages = location.pathname.startsWith('/admin');
-  const isOnVendorDashboard = location.pathname.startsWith('/vendor');
+  const isOnAdminPages = location.pathname.includes('/admin');
+  const isOnVendorDashboard = location.pathname.includes('/vendor');
 
   // ===========================================
   // DYNAMIC NAVIGATION TARGETS
@@ -118,7 +118,7 @@ const BottomNavigation: React.FC = () => {
             }`}
         >
           <Home className="w-5 h-5" />
-          <span className="text-xs">{isVendorContext ? (t?.vendor?.myStore || 'المتجر') : (t?.nav?.home || 'الرئيسية')}</span>
+          <span className="text-xs">{isVendorContext ? (t?.vendor?.myStore || 'Store') : (t?.nav?.home || 'Home')}</span>
         </Link>
 
         {/* Cart - vendor-scoped when in vendor context */}
@@ -133,7 +133,7 @@ const BottomNavigation: React.FC = () => {
               {cartItemCount}
             </span>
           )}
-          <span className="text-xs">{t?.nav?.cart || 'العربة'}</span>
+          <span className="text-xs">{t?.nav?.cart || 'Cart'}</span>
         </Link>
 
         {/* Favorites - vendor-scoped when in vendor context */}
@@ -144,7 +144,7 @@ const BottomNavigation: React.FC = () => {
               }`}
           >
             <Heart className="w-5 h-5" />
-            <span className="text-xs">{t?.nav?.favorites || 'المفضلة'}</span>
+            <span className="text-xs">{t?.nav?.favorites || 'Favorites'}</span>
           </Link>
         )}
 
@@ -156,7 +156,7 @@ const BottomNavigation: React.FC = () => {
               }`}
           >
             <Store className="w-5 h-5" />
-            <span className="text-xs">{t?.vendor?.myStore || 'متجري'}</span>
+            <span className="text-xs">{t?.vendor?.myStore || 'My Store'}</span>
           </Link>
         )}
 
@@ -167,7 +167,7 @@ const BottomNavigation: React.FC = () => {
             }`}
         >
           <User className="w-5 h-5" />
-          <span className="text-xs">{t?.nav?.profile || 'حسابي'}</span>
+          <span className="text-xs">{t?.nav?.profile || 'Account'}</span>
         </Link>
 
         {/* Orders - vendor-scoped when in vendor context */}
@@ -177,7 +177,7 @@ const BottomNavigation: React.FC = () => {
             }`}
         >
           <Package className="w-5 h-5" />
-          <span className="text-xs">{t?.nav?.orders || 'طلباتي'}</span>
+          <span className="text-xs">{t?.nav?.orders || 'Orders'}</span>
         </Link>
       </div>
     </div>

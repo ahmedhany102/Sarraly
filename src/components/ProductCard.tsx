@@ -106,7 +106,7 @@ const ProductCard = ({ product, className = '', variants = [] }: ProductCardProp
     e.stopPropagation();
 
     if (isOutOfStock) {
-      toast.error("المنتج غير متوفر حالياً");
+      toast.error(t?.products?.outOfStock || 'Out of Stock');
       return;
     }
 
@@ -121,7 +121,7 @@ const ProductCard = ({ product, className = '', variants = [] }: ProductCardProp
         };
 
         const cartDb = CartDatabase.getInstance();
-        await cartDb.addToCart(productForCart, 'متاح', selectedVariant.label, 1);
+        await cartDb.addToCart(productForCart, 'default', selectedVariant.label, 1);
       } else {
         // Legacy system for products without variants
         let size = "";
@@ -153,10 +153,10 @@ const ProductCard = ({ product, className = '', variants = [] }: ProductCardProp
         await cartDb.addToCart(productForCart, size, color, 1);
       }
 
-      toast.success("تم إضافة المنتج إلى السلة");
+      toast.success(t?.products?.addedToCart || 'Added to cart');
     } catch (error) {
       console.error('Error adding to cart:', error);
-      toast.error("فشل في إضافة المنتج إلى السلة");
+      toast.error(t?.products?.addToCartError || 'Failed to add to cart');
     }
   };
 
@@ -255,13 +255,13 @@ const ProductCard = ({ product, className = '', variants = [] }: ProductCardProp
           {product.is_free_shipping && (
             <div className="flex items-center gap-1 text-xs text-primary font-medium">
               <Truck className="w-3 h-3" />
-              <span>شحن مجاني</span>
+              <span>{t?.products?.freeShipping || 'Free Shipping'}</span>
             </div>
           )}
           {product.is_fast_shipping && (
             <div className="flex items-center gap-1 text-xs text-amber-500 font-medium">
               <Zap className="w-3 h-3" />
-              <span>شحن سريع</span>
+              <span>{t?.products?.fastDelivery || 'Fast Delivery'}</span>
             </div>
           )}
         </div>
@@ -269,7 +269,7 @@ const ProductCard = ({ product, className = '', variants = [] }: ProductCardProp
         {/* Color Variants */}
         {variants.length > 0 && (
           <div className="flex items-center gap-1 mb-2">
-            <span className="text-xs text-muted-foreground">الألوان:</span>
+            <span className="text-xs text-muted-foreground">{t?.products?.colors || 'Colors'}:</span>
             <div className="flex gap-1">
               {variants.slice(0, 4).map((variant) => {
                 const isSelected = selectedVariant?.id === variant.id;
@@ -312,7 +312,7 @@ const ProductCard = ({ product, className = '', variants = [] }: ProductCardProp
         {/* Legacy Available colors (for backward compatibility) */}
         {variants.length === 0 && product.colors && Array.isArray(product.colors) && product.colors.length > 1 && (
           <div className="flex items-center gap-1 mb-2">
-            <span className="text-xs text-muted-foreground">الألوان:</span>
+            <span className="text-xs text-muted-foreground">{t?.products?.colors || 'Colors'}:</span>
             <div className="flex gap-1">
               {product.colors.slice(0, 3).map((color, index) => (
                 <div

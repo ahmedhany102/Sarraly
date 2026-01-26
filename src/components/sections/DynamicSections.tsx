@@ -8,6 +8,7 @@ import MidPageAds from '@/components/MidPageAds';
 import { ProductCarousel } from '@/components/sections';
 import LazySection from './LazySection';
 import { Star, Flame, Clock } from 'lucide-react';
+import { useLanguageSafe } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Section } from '@/types/section';
 
@@ -20,10 +21,11 @@ interface DynamicSectionsProps {
 // Lazy-loaded Best Sellers component
 const LazyBestSellers: React.FC<{ vendorId?: string }> = ({ vendorId }) => {
   const { products, loading } = useBestSellers(vendorId, 12);
+  const { t } = useLanguageSafe();
   if (products.length === 0) return null;
   return (
     <ProductCarousel
-      title="الأكثر مبيعاً"
+      title={t?.sections?.bestSellers || "الأكثر مبيعاً"}
       products={products}
       loading={loading}
       variant="best_seller"
@@ -36,10 +38,11 @@ const LazyBestSellers: React.FC<{ vendorId?: string }> = ({ vendorId }) => {
 // Lazy-loaded Hot Deals component
 const LazyHotDeals: React.FC<{ vendorId?: string }> = ({ vendorId }) => {
   const { products, loading } = useHotDeals(vendorId, 12);
+  const { t } = useLanguageSafe();
   if (products.length === 0) return null;
   return (
     <ProductCarousel
-      title="عروض ساخنة 🔥"
+      title={t?.sections?.hotDeals || "عروض ساخنة 🔥"}
       products={products}
       loading={loading}
       variant="hot_deals"
@@ -52,10 +55,11 @@ const LazyHotDeals: React.FC<{ vendorId?: string }> = ({ vendorId }) => {
 // Lazy-loaded Last Viewed component
 const LazyLastViewed: React.FC<{ vendorId?: string }> = ({ vendorId }) => {
   const { products, loading } = useLastViewed(vendorId, 10);
+  const { t } = useLanguageSafe();
   if (products.length === 0) return null;
   return (
     <ProductCarousel
-      title="شوهد مؤخراً"
+      title={t?.sections?.lastViewed || "Recently Viewed"}
       products={products}
       loading={loading}
       icon={<Clock className="w-5 h-5" />}

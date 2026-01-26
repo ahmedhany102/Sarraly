@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { compressImage } from '@/utils/imageCompression';
+import { useLanguageSafe } from '@/contexts/LanguageContext';
 
 interface VendorApplyFormProps {
   onSubmit: (
@@ -24,6 +25,7 @@ interface VendorApplyFormProps {
 }
 
 export const VendorApplyForm = ({ onSubmit }: VendorApplyFormProps) => {
+  const { t, direction } = useLanguageSafe();
   const [storeName, setStoreName] = useState('');
   const [storeDescription, setStoreDescription] = useState('');
   const [phone, setPhone] = useState('');
@@ -43,29 +45,33 @@ export const VendorApplyForm = ({ onSubmit }: VendorApplyFormProps) => {
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
+    const requiredField = direction === 'rtl' ? 'مطلوب' : 'Required';
+    const pleaseSelect = direction === 'rtl' ? 'يرجى تحديد ما إذا كان لديك محل تجاري' : 'Please select if you have a physical store';
+    const fillRequired = direction === 'rtl' ? 'يرجى ملء جميع الحقول المطلوبة' : 'Please fill all required fields';
+
     if (!storeName.trim()) {
-      newErrors.storeName = 'اسم المتجر مطلوب';
+      newErrors.storeName = `${t?.vendor?.form?.storeName || 'Store Name'} ${requiredField}`;
     }
     if (!storeDescription.trim()) {
-      newErrors.storeDescription = 'وصف المتجر مطلوب';
+      newErrors.storeDescription = `${t?.vendor?.form?.storeDesc || 'Store Description'} ${requiredField}`;
     }
     if (!phone.trim()) {
-      newErrors.phone = 'رقم الهاتف مطلوب';
+      newErrors.phone = `${t?.vendor?.form?.phone || 'Phone Number'} ${requiredField}`;
     }
     if (!address.trim()) {
-      newErrors.address = 'العنوان مطلوب';
+      newErrors.address = `${t?.vendor?.form?.address || 'Address'} ${requiredField}`;
     }
     if (!salesChannelLink.trim()) {
-      newErrors.salesChannelLink = 'رابط صفحة المبيعات مطلوب';
+      newErrors.salesChannelLink = `${t?.vendor?.form?.salesLink || 'Sales Link'} ${requiredField}`;
     }
     if (!hasPhysicalStore) {
-      newErrors.hasPhysicalStore = 'يرجى تحديد ما إذا كان لديك محل تجاري';
+      newErrors.hasPhysicalStore = pleaseSelect;
     }
 
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) {
-      toast.error('يرجى ملء جميع الحقول المطلوبة');
+      toast.error(fillRequired);
       return false;
     }
     return true;
@@ -76,13 +82,13 @@ export const VendorApplyForm = ({ onSubmit }: VendorApplyFormProps) => {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast.error('يرجى اختيار ملف صورة صالح');
+      toast.error(direction === 'rtl' ? 'يرجى اختيار ملف صورة صالح' : 'Please select a valid image file');
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('حجم الصورة يجب أن يكون أقل من 5 ميجابايت');
+      toast.error(direction === 'rtl' ? 'حجم الصورة يجب أن يكون أقل من 5 ميجابايت' : 'Image size must be less than 5MB');
       return;
     }
 
@@ -102,7 +108,7 @@ export const VendorApplyForm = ({ onSubmit }: VendorApplyFormProps) => {
 
       if (uploadError) {
         console.error('Error uploading logo:', uploadError);
-        toast.error('فشل في رفع الشعار');
+        toast.error(direction === 'rtl' ? 'فشل في رفع الشعار' : 'Failed to upload logo');
         return;
       }
 
@@ -112,10 +118,10 @@ export const VendorApplyForm = ({ onSubmit }: VendorApplyFormProps) => {
 
       setLogoUrl(data.publicUrl);
       setLogoPreview(data.publicUrl);
-      toast.success('تم رفع الشعار بنجاح');
+      toast.success(direction === 'rtl' ? 'تم رفع الشعار بنجاح' : 'Logo uploaded successfully');
     } catch (error) {
       console.error('Error uploading logo:', error);
-      toast.error('فشل في رفع الشعار');
+      toast.error(direction === 'rtl' ? 'فشل في رفع الشعار' : 'Failed to upload logo');
     } finally {
       setUploadingLogo(false);
     }
@@ -164,38 +170,38 @@ export const VendorApplyForm = ({ onSubmit }: VendorApplyFormProps) => {
   };
 
   return (
-    <Card className="max-w-lg mx-auto shadow-lg rounded-2xl">
+    <Card dir={direction} className="max-w-lg mx-auto shadow-lg rounded-2xl">
       <CardHeader className="text-center pb-4">
         <div className="mx-auto w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mb-4">
           <Store className="w-7 h-7 text-primary" />
         </div>
-        <CardTitle className="text-2xl">املأ البيانات التالية</CardTitle>
+        <CardTitle className="text-2xl">{t?.vendor?.form?.sectionHeader || 'Fill in the Details'}</CardTitle>
         <CardDescription className="text-base">
-          أكمل جميع الحقول المطلوبة للحصول على متجرك الخاص
+          {t?.vendor?.form?.sectionSubHeader || 'Complete all required fields to get your own store'}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Store Name */}
           <div className="space-y-1">
-            <Label htmlFor="storeName" className="text-right block">
-              اسم المتجر <span className="text-destructive">*</span>
+            <Label htmlFor="storeName" className="text-start block">
+              {t?.vendor?.form?.storeName || 'Store Name'} <span className="text-destructive">*</span>
             </Label>
             <Input
               id="storeName"
               value={storeName}
               onChange={(e) => setStoreName(e.target.value)}
-              placeholder="أدخل اسم متجرك"
+              placeholder={direction === 'rtl' ? 'أدخل اسم متجرك' : 'Enter your store name'}
               disabled={submitting}
-              className={`text-right ${errors.storeName ? 'border-destructive' : ''}`}
+              className={`text-start ${errors.storeName ? 'border-destructive' : ''}`}
             />
             <ErrorMessage error={errors.storeName} />
           </div>
 
           {/* Store Logo Upload */}
           <div className="space-y-2">
-            <Label className="text-right block">
-              شعار المتجر <span className="text-muted-foreground text-xs">(اختياري)</span>
+            <Label className="text-start block">
+              {t?.vendor?.form?.storeLogo || 'Store Logo (Optional)'}
             </Label>
             <div className="flex items-center gap-4">
               {logoPreview ? (
@@ -241,18 +247,18 @@ export const VendorApplyForm = ({ onSubmit }: VendorApplyFormProps) => {
                 >
                   {uploadingLogo ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      جاري الرفع...
+                      <Loader2 className={`w-4 h-4 ${direction === 'rtl' ? 'ml-2' : 'mr-2'} animate-spin`} />
+                      {direction === 'rtl' ? 'جاري الرفع...' : 'Uploading...'}
                     </>
                   ) : (
                     <>
-                      <Upload className="w-4 h-4 mr-2" />
-                      {logoPreview ? 'تغيير الشعار' : 'رفع شعار المتجر'}
+                      <Upload className={`w-4 h-4 ${direction === 'rtl' ? 'ml-2' : 'mr-2'}`} />
+                      {logoPreview ? (direction === 'rtl' ? 'تغيير الشعار' : 'Change Logo') : (t?.vendor?.form?.uploadLogo || 'Upload Store Logo')}
                     </>
                   )}
                 </Button>
                 <p className="text-xs text-muted-foreground mt-1 text-center">
-                  يُضغط تلقائياً | الحد الأقصى 5 ميجابايت
+                  {t?.vendor?.form?.logoHint || 'Auto-compressed | Max 5MB'}
                 </p>
               </div>
             </div>
@@ -260,32 +266,32 @@ export const VendorApplyForm = ({ onSubmit }: VendorApplyFormProps) => {
 
           {/* Store Description */}
           <div className="space-y-1">
-            <Label htmlFor="storeDescription" className="text-right block">
-              وصف المتجر <span className="text-destructive">*</span>
+            <Label htmlFor="storeDescription" className="text-start block">
+              {t?.vendor?.form?.storeDesc || 'Store Description'} <span className="text-destructive">*</span>
             </Label>
             <Textarea
               id="storeDescription"
               value={storeDescription}
               onChange={(e) => setStoreDescription(e.target.value)}
-              placeholder="اكتب وصفاً مختصراً عن متجرك ومنتجاتك"
+              placeholder={direction === 'rtl' ? 'اكتب وصفاً مختصراً عن متجرك ومنتجاتك' : 'Write a brief description of your store and products'}
               rows={3}
               disabled={submitting}
-              className={`text-right resize-none ${errors.storeDescription ? 'border-destructive' : ''}`}
+              className={`text-start resize-none ${errors.storeDescription ? 'border-destructive' : ''}`}
             />
             <ErrorMessage error={errors.storeDescription} />
           </div>
 
           {/* Phone */}
           <div className="space-y-1">
-            <Label htmlFor="phone" className="text-right block">
-              رقم الهاتف <span className="text-destructive">*</span>
+            <Label htmlFor="phone" className="text-start block">
+              {t?.vendor?.form?.phone || 'Phone Number'} <span className="text-destructive">*</span>
             </Label>
             <Input
               id="phone"
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="رقم الهاتف للتواصل"
+              placeholder={direction === 'rtl' ? 'رقم الهاتف للتواصل' : 'Contact phone number'}
               disabled={submitting}
               dir="ltr"
               className={`text-left ${errors.phone ? 'border-destructive' : ''}`}
@@ -295,64 +301,68 @@ export const VendorApplyForm = ({ onSubmit }: VendorApplyFormProps) => {
 
           {/* Address */}
           <div className="space-y-1">
-            <Label htmlFor="address" className="text-right block">
-              العنوان <span className="text-destructive">*</span>
+            <Label htmlFor="address" className="text-start block">
+              {t?.vendor?.form?.address || 'Address'} <span className="text-destructive">*</span>
             </Label>
             <Input
               id="address"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder="عنوان المتجر أو المكتب"
+              placeholder={direction === 'rtl' ? 'عنوان المتجر أو المكتب' : 'Store or office address'}
               disabled={submitting}
-              className={`text-right ${errors.address ? 'border-destructive' : ''}`}
+              className={`text-start ${errors.address ? 'border-destructive' : ''}`}
             />
             <ErrorMessage error={errors.address} />
           </div>
 
           {/* Divider */}
           <div className="border-t border-border my-3 pt-3">
-            <p className="text-sm text-muted-foreground text-center mb-3">معلومات إضافية عن نشاطك التجاري</p>
+            <p className="text-sm text-muted-foreground text-center mb-3">
+              {t?.vendor?.form?.extraInfo || 'Additional Information About Your Business'}
+            </p>
           </div>
 
           {/* Sales Channel Link */}
           <div className="space-y-1">
-            <Label htmlFor="salesChannelLink" className="text-right flex items-center gap-2 justify-end">
-              <span>رابط صفحة مبيعاتك الحالية <span className="text-destructive">*</span></span>
+            <Label htmlFor="salesChannelLink" className="text-start flex items-center gap-2">
               <Link2 className="w-4 h-4 text-primary" />
+              <span>{t?.vendor?.form?.salesLink || 'Your Current Sales Page Link'} <span className="text-destructive">*</span></span>
             </Label>
             <Input
               id="salesChannelLink"
               type="url"
               value={salesChannelLink}
               onChange={(e) => setSalesChannelLink(e.target.value)}
-              placeholder="https://facebook.com/yourpage أو https://instagram.com/yourpage"
+              placeholder={direction === 'rtl' ? 'https://facebook.com/yourpage أو https://instagram.com/yourpage' : 'https://facebook.com/yourpage or https://instagram.com/yourpage'}
               disabled={submitting}
               dir="ltr"
               className={`text-left ${errors.salesChannelLink ? 'border-destructive' : ''}`}
             />
-            <p className="text-xs text-muted-foreground text-right">فيسبوك، انستجرام، أو أي منصة أخرى</p>
+            <p className="text-xs text-muted-foreground text-start">
+              {t?.vendor?.form?.salesLinkPlaceholder || 'Facebook, Instagram, or any other platform'}
+            </p>
             <ErrorMessage error={errors.salesChannelLink} />
           </div>
 
           {/* Has Physical Store */}
           <div className="space-y-2">
-            <Label className="text-right flex items-center gap-2 justify-end">
-              <span>هل تمتلك محلاً تجارياً على أرض الواقع؟ <span className="text-destructive">*</span></span>
+            <Label className="text-start flex items-center gap-2">
               <Building2 className="w-4 h-4 text-primary" />
+              <span>{t?.vendor?.form?.hasPhysicalStore || 'Do you have a physical retail store?'} <span className="text-destructive">*</span></span>
             </Label>
             <RadioGroup
               value={hasPhysicalStore}
               onValueChange={setHasPhysicalStore}
-              className="flex gap-6 justify-end"
+              className={`flex gap-6 ${direction === 'rtl' ? 'justify-end' : 'justify-start'}`}
               disabled={submitting}
             >
               <div className="flex items-center gap-2">
-                <Label htmlFor="store-no" className="cursor-pointer">لا</Label>
-                <RadioGroupItem value="no" id="store-no" />
+                <RadioGroupItem value="yes" id="store-yes" />
+                <Label htmlFor="store-yes" className="cursor-pointer">{t?.vendor?.form?.yes || 'Yes'}</Label>
               </div>
               <div className="flex items-center gap-2">
-                <Label htmlFor="store-yes" className="cursor-pointer">نعم</Label>
-                <RadioGroupItem value="yes" id="store-yes" />
+                <RadioGroupItem value="no" id="store-no" />
+                <Label htmlFor="store-no" className="cursor-pointer">{t?.vendor?.form?.no || 'No'}</Label>
               </div>
             </RadioGroup>
             <ErrorMessage error={errors.hasPhysicalStore} />
@@ -360,18 +370,18 @@ export const VendorApplyForm = ({ onSubmit }: VendorApplyFormProps) => {
 
           {/* Registration Notes - OPTIONAL */}
           <div className="space-y-1">
-            <Label htmlFor="registrationNotes" className="text-right flex items-center gap-2 justify-end">
-              <span>ملاحظات إضافية <span className="text-muted-foreground text-xs">(اختياري)</span></span>
+            <Label htmlFor="registrationNotes" className="text-start flex items-center gap-2">
               <FileText className="w-4 h-4 text-primary" />
+              <span>{t?.vendor?.form?.notes || 'Additional Notes (Optional)'}</span>
             </Label>
             <Textarea
               id="registrationNotes"
               value={registrationNotes}
               onChange={(e) => setRegistrationNotes(e.target.value)}
-              placeholder="هل لديك أي استفسارات أو تفاصيل تود إضافتها؟"
+              placeholder={direction === 'rtl' ? 'هل لديك أي استفسارات أو تفاصيل تود إضافتها؟' : 'Any questions or details you would like to add?'}
               rows={3}
               disabled={submitting}
-              className="text-right resize-none"
+              className="text-start resize-none"
             />
           </div>
 
@@ -384,11 +394,11 @@ export const VendorApplyForm = ({ onSubmit }: VendorApplyFormProps) => {
           >
             {submitting ? (
               <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                جاري تقديم الطلب...
+                <Loader2 className={`w-5 h-5 ${direction === 'rtl' ? 'ml-2' : 'mr-2'} animate-spin`} />
+                {direction === 'rtl' ? 'جاري تقديم الطلب...' : 'Submitting Application...'}
               </>
             ) : (
-              'تقديم الطلب'
+              t?.vendor?.form?.submit || 'Submit Application'
             )}
           </Button>
         </form>

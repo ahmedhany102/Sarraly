@@ -74,7 +74,7 @@ const VendorStoreHeader: React.FC<VendorStoreHeaderProps> = ({
     };
 
     // Use vendor data from context
-    const vendorName = vendor?.name || 'المتجر';
+    const vendorName = vendor?.name || (t?.store?.defaultName || 'Store');
     const vendorLogo = vendor?.logo_url;
 
     return (

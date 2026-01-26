@@ -8,9 +8,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useUserOrders } from '@/hooks/useUserOrders';
 import { format } from 'date-fns';
 import { X, Package, Clock } from 'lucide-react';
+import { useLanguageSafe } from '@/contexts/LanguageContext';
 
 const UserOrders = () => {
   const { orders, loading, cancelling, cancelOrder } = useUserOrders();
+  const { t, direction } = useLanguageSafe();
 
   if (loading) {
     return (
@@ -23,7 +25,7 @@ const UserOrders = () => {
   if (orders.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-500">لم تقم بأي طلبات بعد.</p>
+        <p className="text-gray-500">{t?.orders?.noOrders || 'You have no orders yet.'}</p>
       </div>
     );
   }
@@ -39,16 +41,10 @@ const UserOrders = () => {
     }
   };
 
-  // Translate status to Arabic
+  // Translate status using translation keys
   const getStatusLabel = (status: string) => {
-    switch (status?.toUpperCase()) {
-      case 'PENDING': return 'قيد الانتظار';
-      case 'PROCESSING': return 'جارِ التجهيز';
-      case 'SHIPPED': return 'تم الشحن';
-      case 'DELIVERED': return 'تم التوصيل';
-      case 'CANCELLED': return 'ملغي';
-      default: return status;
-    }
+    const statusKey = status?.toLowerCase();
+    return t?.orders?.statusMap?.[statusKey] || status;
   };
 
   const canCancelOrder = (order: any) => {
@@ -87,9 +83,9 @@ const UserOrders = () => {
         <CardHeader className="pb-3">
           <div className="flex justify-between items-start">
             <div>
-              <CardTitle className="text-lg">طلب #{orderNumber}</CardTitle>
+              <CardTitle className="text-lg">{t?.orders?.orderNumber || 'Order'} #{orderNumber}</CardTitle>
               <p className="text-sm text-gray-600">
-                تم الطلب في {format(new Date(order.created_at), 'PPP')}
+                {t?.orders?.orderedOn || 'Ordered on'} {format(new Date(order.created_at), 'PPP')}
               </p>
             </div>
             <div className="text-right">
@@ -106,21 +102,21 @@ const UserOrders = () => {
                         disabled={cancelling === order.id}
                         className="h-6 px-2 text-xs"
                       >
-                        <X className="h-3 w-3 mr-1" />
-                        {cancelling === order.id ? 'جاري الإلغاء...' : 'إلغاء'}
+                        <X className={`h-3 w-3 ${direction === 'rtl' ? 'ml-1' : 'mr-1'}`} />
+                        {cancelling === order.id ? (t?.orders?.cancelling || 'Cancelling...') : (t?.orders?.cancel || 'Cancel')}
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>إلغاء الطلب</AlertDialogTitle>
+                        <AlertDialogTitle>{t?.orders?.cancelOrder || 'Cancel Order'}</AlertDialogTitle>
                         <AlertDialogDescription>
-                          هل أنت متأكد من إلغاء الطلب رقم #{orderNumber}؟ لا يمكن التراجع عن هذا الإجراء.
+                          {t?.orders?.cancelConfirm?.replace('{orderNumber}', orderNumber) || `Are you sure you want to cancel order #${orderNumber}? This action cannot be undone.`}
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>الإبقاء على الطلب</AlertDialogCancel>
+                        <AlertDialogCancel>{t?.orders?.keepOrder || 'Keep Order'}</AlertDialogCancel>
                         <AlertDialogAction onClick={() => handleCancelOrder(order.id)}>
-                          نعم، إلغاء الطلب
+                          {t?.orders?.yesCancelOrder || 'Yes, Cancel Order'}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
@@ -128,7 +124,7 @@ const UserOrders = () => {
                 )}
               </div>
               <p className="text-lg font-semibold">
-                {Number(displayTotal).toFixed(0)} ج.م
+                {Number(displayTotal).toFixed(0)} {t?.common?.currency || 'EGP'}
               </p>
             </div>
           </div>
@@ -138,7 +134,7 @@ const UserOrders = () => {
           <div className="space-y-3">
             {/* Order Items */}
             <div>
-              <h4 className="font-medium mb-2">المنتجات:</h4>
+              <h4 className="font-medium mb-2">{t?.cart?.products || 'Products'}:</h4>
               <div className="space-y-2">
                 {Array.isArray(order.items) && order.items.map((item, index) => (
                   <div key={index} className="flex justify-between items-center text-sm">
@@ -153,16 +149,16 @@ const UserOrders = () => {
                       <div>
                         <p className="font-medium">{item.productName}</p>
                         {item.color && item.color !== '-' && (
-                          <p className="text-gray-500">اللون: {item.color}</p>
+                          <p className="text-gray-500">{t?.productDetails?.color || 'Color'}: {item.color}</p>
                         )}
                         {item.size && item.size !== '-' && (
-                          <p className="text-gray-500">المقاس: {item.size}</p>
+                          <p className="text-gray-500">{t?.productDetails?.size || 'Size'}: {item.size}</p>
                         )}
                       </div>
                     </div>
                     <div className="text-right">
-                      <p>الكمية: {item.quantity}</p>
-                      <p className="font-medium">${Number(item.totalPrice ?? 0).toFixed(2)}</p>
+                      <p>{t?.productDetails?.quantity || 'Qty'}: {item.quantity}</p>
+                      <p className="font-medium">{Number(item.totalPrice ?? 0).toFixed(2)} {t?.common?.currency || 'EGP'}</p>
                     </div>
                   </div>
                 ))}
@@ -172,7 +168,7 @@ const UserOrders = () => {
             {/* Shipping Address */}
             {order.customer_info?.address && (
               <div>
-                <h4 className="font-medium mb-1">عنوان الشحن:</h4>
+                <h4 className="font-medium mb-1">{t?.orders?.shippingAddress || 'Shipping Address'}:</h4>
                 <p className="text-sm text-gray-600">
                   {order.customer_info.address.street}, {order.customer_info.address.city}, {order.customer_info.address.zipCode}
                 </p>
@@ -182,7 +178,7 @@ const UserOrders = () => {
             {/* Order Notes */}
             {order.notes && (
               <div>
-                <h4 className="font-medium mb-1">ملاحظات:</h4>
+                <h4 className="font-medium mb-1">{t?.orders?.notes || 'Notes'}:</h4>
                 <p className="text-sm text-gray-600">{order.notes}</p>
               </div>
             )}
@@ -193,18 +189,18 @@ const UserOrders = () => {
   };
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-gray-900">طلباتي</h2>
+    <div className="space-y-4" dir={direction}>
+      <h2 className="text-2xl font-bold text-gray-900">{t?.orders?.myOrders || 'My Orders'}</h2>
 
       <Tabs defaultValue="active" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="active" className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
-            الطلبات النشطة ({activeOrders.length})
+            {t?.orders?.activeOrders || 'Active Orders'} ({activeOrders.length})
           </TabsTrigger>
           <TabsTrigger value="cancelled" className="flex items-center gap-2">
             <X className="h-4 w-4" />
-            الطلبات الملغاة ({cancelledOrders.length})
+            {t?.orders?.cancelledOrders || 'Cancelled Orders'} ({cancelledOrders.length})
           </TabsTrigger>
         </TabsList>
 
@@ -212,7 +208,7 @@ const UserOrders = () => {
           {activeOrders.length === 0 ? (
             <div className="text-center py-8">
               <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">لا توجد طلبات نشطة.</p>
+              <p className="text-gray-500">{t?.orders?.noActiveOrders || 'No active orders.'}</p>
             </div>
           ) : (
             activeOrders.map(renderOrderCard)
@@ -223,7 +219,7 @@ const UserOrders = () => {
           {cancelledOrders.length === 0 ? (
             <div className="text-center py-8">
               <X className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">لا توجد طلبات ملغاة.</p>
+              <p className="text-gray-500">{t?.orders?.noCancelledOrders || 'No cancelled orders.'}</p>
             </div>
           ) : (
             cancelledOrders.map(renderOrderCard)

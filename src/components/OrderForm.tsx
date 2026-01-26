@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Separator } from './ui/separator';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguageSafe } from '@/contexts/LanguageContext';
 import { useSupabaseOrders } from '@/hooks/useSupabaseOrders';
 import { claimCoupon } from '@/services/claimCouponService';
 import { ApplyCouponService } from '@/services/applyCouponService';
@@ -39,6 +40,7 @@ interface OrderFormProps {
 
 const OrderForm: React.FC<OrderFormProps> = ({ cartItems, subtotal, onOrderComplete, appliedCoupon }) => {
   const { user, session } = useAuth();
+  const { t, direction } = useLanguageSafe();
   const { addOrder } = useSupabaseOrders();
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -278,17 +280,17 @@ const OrderForm: React.FC<OrderFormProps> = ({ cartItems, subtotal, onOrderCompl
       }
 
       if (!formData.street?.trim()) {
-        toast.error('العنوان بالتفصيل مطلوب');
+        toast.error(t?.checkout?.streetRequired || 'Street address is required');
         return;
       }
 
       if (!formData.city?.trim()) {
-        toast.error('المدينة مطلوبة');
+        toast.error(t?.checkout?.cityRequired || 'City is required');
         return;
       }
 
       if (!formData.governorate) {
-        toast.error('المحافظة مطلوبة');
+        toast.error(t?.checkout?.governorateRequired || 'Governorate is required');
         return;
       }
 
@@ -331,7 +333,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ cartItems, subtotal, onOrderCompl
         const claimedCoupon = await claimCoupon(appliedCoupon.code);
 
         if (!claimedCoupon) {
-          toast.error('كود الخصم غير صالح أو انتهت صلاحيته. الرجاء إزالته والمحاولة مرة أخرى.');
+          toast.error(t?.cart?.couponExpired || 'Coupon is invalid or expired. Please remove it and try again.');
           setIsSubmitting(false);
           return;
         }
@@ -388,7 +390,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ cartItems, subtotal, onOrderCompl
       console.log('Order successfully created and saved:', createdOrder);
 
       // Show success message
-      toast.success(`تم إرسال الطلب بنجاح! رقم الطلب: ${orderData.order_number}`);
+      toast.success(`${t?.checkout?.orderPlaced || 'Order placed successfully!'} ${t?.checkout?.orderNumber || 'Order #'}: ${orderData.order_number}`);
 
       // Clear cart and complete order process
       if (onOrderComplete) {
@@ -397,84 +399,84 @@ const OrderForm: React.FC<OrderFormProps> = ({ cartItems, subtotal, onOrderCompl
 
     } catch (error: any) {
       console.error('Order creation failed:', error);
-      toast.error('فشل في إرسال الطلب: ' + (error.message || 'خطأ غير معروف'));
+      toast.error((t?.checkout?.orderFailed || 'Failed to place order: ') + (error.message || t?.common?.unknownError || 'Unknown error'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4" dir={direction}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="name">الاسم بالكامل *</Label>
+          <Label htmlFor="name">{t?.checkout?.fullName || 'Full Name'} *</Label>
           <Input
             id="name"
             name="name"
             value={formData.name}
             onChange={handleChange}
-            placeholder="اسمك الكامل"
+            placeholder={t?.checkout?.fullNamePlaceholder || 'Your full name'}
             required
           />
         </div>
         <div>
-          <Label htmlFor="email">البريد الإلكتروني *</Label>
+          <Label htmlFor="email">{t?.checkout?.email || 'Email'} *</Label>
           <Input
             id="email"
             name="email"
             type="email"
             value={formData.email}
             onChange={handleChange}
-            placeholder="البريد الإلكتروني"
+            placeholder={t?.checkout?.emailPlaceholder || 'Your email'}
             required
           />
         </div>
       </div>
 
       <div>
-        <Label htmlFor="phone">رقم الهاتف *</Label>
+        <Label htmlFor="phone">{t?.checkout?.phone || 'Phone Number'} *</Label>
         <Input
           id="phone"
           name="phone"
           value={formData.phone}
           onChange={handleChange}
-          placeholder="رقم هاتفك"
+          placeholder={t?.checkout?.phonePlaceholder || 'Your phone number'}
           required
         />
       </div>
 
       <div>
-        <Label htmlFor="street">العنوان بالتفصيل (المبنى، الشقة، الشارع) *</Label>
+        <Label htmlFor="street">{t?.checkout?.street || 'Address Details (Building, Apartment, Street)'} *</Label>
         <Input
           id="street"
           name="street"
           value={formData.street}
           onChange={handleChange}
-          placeholder="مثال: عمارة 5، شقة 12، شارع النصر"
+          placeholder={t?.checkout?.streetPlaceholder || 'Example: Building 5, Apt 12, Victory Street'}
           required
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="city">المدينة *</Label>
+          <Label htmlFor="city">{t?.checkout?.city || 'City'} *</Label>
           <Input
             id="city"
             name="city"
             value={formData.city}
             onChange={handleChange}
-            placeholder="مثال: مدينة نصر، المعادي"
+            placeholder={t?.checkout?.cityPlaceholder || 'Example: Nasr City, Maadi'}
             required
           />
         </div>
         <div>
           <Label className="flex items-center gap-1">
             <MapPin className="w-4 h-4" />
-            المحافظة *
+            {t?.checkout?.governorate || 'Governorate'} *
           </Label>
           <Select value={formData.governorate} onValueChange={handleGovernorateChange}>
             <SelectTrigger>
-              <SelectValue placeholder="اختر المحافظة" />
+              <SelectValue placeholder={t?.checkout?.selectGovernorate || 'Select Governorate'} />
             </SelectTrigger>
             <SelectContent>
               {EGYPTIAN_GOVERNORATES.map((gov) => (
@@ -486,13 +488,13 @@ const OrderForm: React.FC<OrderFormProps> = ({ cartItems, subtotal, onOrderCompl
           </Select>
         </div>
         <div>
-          <Label htmlFor="zipCode">الرمز البريدي</Label>
+          <Label htmlFor="zipCode">{t?.checkout?.zipCode || 'Zip Code'}</Label>
           <Input
             id="zipCode"
             name="zipCode"
             value={formData.zipCode}
             onChange={handleChange}
-            placeholder="الرمز البريدي (اختياري)"
+            placeholder={t?.checkout?.zipCodePlaceholder || 'Zip Code (optional)'}
           />
         </div>
       </div>
@@ -500,44 +502,44 @@ const OrderForm: React.FC<OrderFormProps> = ({ cartItems, subtotal, onOrderCompl
       {/* Shipping Cost Display */}
       <div className="bg-muted/50 rounded-lg p-4 space-y-2">
         <div className="flex justify-between text-sm">
-          <span>المجموع الفرعي</span>
-          <span>{subtotal.toFixed(2)} ج.م</span>
+          <span>{t?.cart?.subtotal || 'Subtotal'}</span>
+          <span>{subtotal.toFixed(2)} {t?.common?.currency || 'EGP'}</span>
         </div>
         <div className="flex justify-between text-sm">
           <span className="flex items-center gap-1">
             <Truck className="w-4 h-4" />
-            Shipping ({getGovernorateLabel(formData.governorate)})
+            {t?.cart?.shipping || 'Shipping'} ({getGovernorateLabel(formData.governorate)})
           </span>
           <span>
             {isCalculatingShipping ? (
               <span className="flex items-center gap-1 text-muted-foreground">
                 <Loader2 className="w-3 h-3 animate-spin" />
-                جاري الحساب...
+                {t?.common?.calculating || 'Calculating...'}
               </span>
             ) : shippingCost === 0 ? (
-              <span className="text-green-600 font-semibold">مجانًا</span>
+              <span className="text-green-600 font-semibold">{t?.products?.freeShipping || 'Free'}</span>
             ) : (
-              `${shippingCost.toFixed(2)} EGP`
+              `${shippingCost.toFixed(2)} ${t?.common?.currency || 'EGP'}`
             )}
           </span>
         </div>
         {appliedCoupon && (
           <div className="flex justify-between text-sm text-primary">
-            <span>الخصم ({appliedCoupon.code})</span>
-            <span>-{discountAmount.toFixed(2)} ج.م</span>
+            <span>{t?.cart?.discount || 'Discount'} ({appliedCoupon.code})</span>
+            <span>-{discountAmount.toFixed(2)} {t?.common?.currency || 'EGP'}</span>
           </div>
         )}
         <Separator />
         <div className="flex justify-between font-bold">
-          <span>الإجمالي</span>
-          <span>{total.toFixed(2)} ج.م</span>
+          <span>{t?.cart?.total || 'Total'}</span>
+          <span>{total.toFixed(2)} {t?.common?.currency || 'EGP'}</span>
         </div>
       </div>
 
       <div>
-        <Label htmlFor="paymentMethod">طريقة الدفع</Label>
+        <Label htmlFor="paymentMethod">{t?.checkout?.paymentMethod || 'Payment Method'}</Label>
         <div className="w-full p-2 border border-gray-300 rounded-md bg-white dark:bg-gray-800">
-          الدفع عند الاستلام
+          {t?.checkout?.cod || 'Cash on Delivery'}
         </div>
         <input
           type="hidden"
@@ -547,13 +549,13 @@ const OrderForm: React.FC<OrderFormProps> = ({ cartItems, subtotal, onOrderCompl
       </div>
 
       <div>
-        <Label htmlFor="notes">ملاحظات الطلب (اختياري)</Label>
+        <Label htmlFor="notes">{t?.checkout?.notes || 'Order Notes'} ({t?.common?.optional || 'optional'})</Label>
         <Textarea
           id="notes"
           name="notes"
           value={formData.notes}
           onChange={handleChange}
-          placeholder="أي تعليمات خاصة للتوصيل؟"
+          placeholder={t?.checkout?.notesPlaceholder || 'Any special delivery instructions?'}
           rows={3}
         />
       </div>
@@ -563,7 +565,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ cartItems, subtotal, onOrderCompl
         className="w-full bg-primary hover:bg-primary/90"
         disabled={isSubmitting || isCalculatingShipping}
       >
-        {isSubmitting ? 'جاري معالجة الطلب...' : `تأكيد الطلب - ${total.toFixed(2)} ج.م`}
+        {isSubmitting ? (t?.checkout?.processing || 'Processing...') : `${t?.checkout?.placeOrder || 'Place Order'} - ${total.toFixed(2)} ${t?.common?.currency || 'EGP'}`}
       </Button>
     </form>
   );

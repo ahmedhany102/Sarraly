@@ -1,9 +1,10 @@
 
 import React from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguageSafe } from '@/contexts/LanguageContext';
+import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { LogOut, Shield, Moon, Sun, Store } from 'lucide-react';
 import { toast } from 'sonner';

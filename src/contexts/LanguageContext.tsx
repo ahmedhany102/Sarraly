@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { translations } from '@/utils/translations';
 
 type Language = 'ar' | 'en';
 type Direction = 'rtl' | 'ltr';
@@ -31,15 +32,6 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     const [isLoading, setIsLoading] = useState(false);
 
     const direction: Direction = language === 'ar' ? 'rtl' : 'ltr';
-
-    // Dynamically import translations
-    const [translations, setTranslations] = useState<any>(null);
-
-    useEffect(() => {
-        import('@/utils/translations').then((module) => {
-            setTranslations(module.translations);
-        });
-    }, []);
 
     // Persist language preference and update document direction
     useEffect(() => {
@@ -75,7 +67,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     };
 
     // Get current language translations
-    const t = translations ? translations[language] : translations?.ar || {};
+    const t = translations[language];
 
     return (
         <LanguageContext.Provider value={{ language, direction, isLoading, toggleLanguage, t }}>

@@ -70,8 +70,8 @@ const Index = () => {
 
         {/* Tab Navigation */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="mb-6">
-          <div dir={direction} className="flex w-full">
-            <TabsList className="grid grid-cols-3 w-full max-w-md">
+          <div dir={direction} className="flex w-full justify-start">
+            <TabsList dir={direction} className="grid grid-cols-3 w-full max-w-md">
               <TabsTrigger value="home" className="flex items-center gap-2">
                 <ShoppingBag className="w-4 h-4" />
                 {t?.nav?.home || 'Home'}

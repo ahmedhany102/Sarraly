@@ -11,6 +11,7 @@ import CartDatabase from '@/models/CartDatabase';
 import { useVendorContext } from '@/hooks/useVendorContext';
 import { useBulkProductVariants } from '@/hooks/useBulkProductVariants';
 import { useLanguageSafe } from '@/contexts/LanguageContext';
+import { getTranslatedTitle } from '@/utils/titleMapper';
 
 // 🔴 Image optimization helper to reduce Supabase egress
 const getOptimizedUrl = (
@@ -190,7 +191,7 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({
       >
         <div className={`flex items-center gap-2 ${styles.headerText}`}>
           {icon}
-          <h2 className="text-lg md:text-xl font-bold">{title}</h2>
+          <h2 className="text-lg md:text-xl font-bold">{getTranslatedTitle(title, t)}</h2>
         </div>
         <div className="flex items-center gap-2">
           {showMoreLink && (
@@ -270,7 +271,7 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({
                 {/* Discount Badge */}
                 {product.discount && product.discount > 0 && (
                   <Badge className="absolute top-2 right-2 bg-red-500 text-white text-xs">
-                    {product.discount}% {t?.products?.discount || 'خصم'}
+                    {product.discount}% {t?.products?.discount || 'OFF'}
                   </Badge>
                 )}
 
@@ -278,14 +279,14 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({
                 {variant === 'best_seller' && (
                   <Badge className="absolute top-2 left-2 bg-amber-500 text-white text-xs flex items-center gap-1">
                     <Star className="w-3 h-3" fill="currentColor" />
-                    {t?.products?.bestSeller || 'الأكثر مبيعاً'}
+                    {t?.products?.bestSeller || 'Best Seller'}
                   </Badge>
                 )}
 
                 {/* Out of Stock Overlay */}
                 {isOutOfStock && (
                   <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <span className="text-white font-bold">{t?.products?.outOfStock || 'غير متوفر'}</span>
+                    <span className="text-white font-bold">{t?.products?.outOfStock || 'Out of Stock'}</span>
                   </div>
                 )}
               </div>
@@ -356,7 +357,7 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({
                       onClick={(e) => handleVendorClick(e, product.vendor_slug)}
                       className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
                     >
-                      {t?.products?.soldBy || 'بواسطة'}: {product.vendor_name}
+                      {t?.products?.soldBy || 'by'}: {product.vendor_name}
                     </button>
                   )}
                 </div>
@@ -382,8 +383,8 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({
                   size="sm"
                   disabled={isOutOfStock}
                 >
-                  <ShoppingCart className="w-4 h-4 mr-2" />
-                  {isOutOfStock ? (t?.products?.outOfStock || 'غير متوفر') : (t?.products?.addToCart || 'أضف للسلة')}
+                  <ShoppingCart className="w-4 h-4 me-2" />
+                  {isOutOfStock ? (t?.products?.outOfStock || 'Out of Stock') : (t?.products?.addToCart || 'Add to Cart')}
                 </Button>
               </CardFooter>
             </Card>
