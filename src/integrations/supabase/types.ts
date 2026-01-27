@@ -903,6 +903,39 @@ export type Database = {
           },
         ]
       }
+      short_links: {
+        Row: {
+          id: number
+          code: string
+          original_url: string
+          resource_type: string | null
+          resource_id: string | null
+          visits: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          code: string
+          original_url: string
+          resource_type?: string | null
+          resource_id?: string | null
+          visits?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          code?: string
+          original_url?: string
+          resource_type?: string | null
+          resource_id?: string | null
+          visits?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           assigned_at: string | null
@@ -1414,6 +1447,31 @@ export type Database = {
           redirect_url: string
           title: string
         }[]
+      }
+      get_or_create_short_link: {
+        Args: {
+          p_original_url: string
+          p_resource_type?: string
+          p_resource_id?: string
+        }
+        Returns: {
+          code: string
+          short_url: string
+        }[]
+      }
+      resolve_short_link: {
+        Args: {
+          p_code: string
+        }
+        Returns: {
+          original_url: string
+          resource_type: string
+          resource_id: string
+        }[]
+      }
+      generate_short_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       get_vendor_analytics: {
         Args: { _vendor_id?: string }

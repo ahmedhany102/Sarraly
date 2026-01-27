@@ -21,6 +21,7 @@ import { useVendorCategories } from '@/hooks/useVendors';
 import VendorStoreHeader from '@/components/vendor/VendorStoreHeader';
 import SEO from '@/components/SEO';
 import { useLanguageSafe } from '@/contexts/LanguageContext';
+import ShareButton from '@/components/ShareButton';
 
 interface Product {
   id: string;
@@ -627,7 +628,17 @@ const ProductDetails = () => {
 
             {/* Title and Price */}
             <div>
-              <h1 className="text-2xl font-bold text-start">{product.name}</h1>
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <h1 className="text-2xl font-bold text-start flex-1">{product.name}</h1>
+                <ShareButton
+                  url={window.location.pathname}
+                  title={product.name}
+                  resourceType="product"
+                  resourceId={product.id}
+                  size="icon"
+                  showLabel={false}
+                />
+              </div>
               <div className="flex items-center gap-2 mt-2 flex-wrap">
                 {hasDiscount ? (
                   <>

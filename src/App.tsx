@@ -43,6 +43,9 @@ import AdminReviews from './pages/admin/AdminReviews';
 import AdminAnalytics from './pages/admin/AdminAnalytics';
 import AdminVendors from './pages/admin/AdminVendors';
 
+// Short Link Redirect
+import ShortLinkRedirect from './pages/ShortLinkRedirect';
+
 // Vendor context and layout
 import { VendorContextProvider } from './contexts/VendorContext';
 import VendorLayout from './components/layouts/VendorLayout';
@@ -90,6 +93,9 @@ function AppContent() {
     <>
       <div className="flex flex-col min-h-screen w-full">
         <Routes>
+          {/* ========== SHORT LINK REDIRECT ROUTE ========== */}
+          <Route path="/s/:code" element={<ShortLinkRedirect />} />
+
           {/* Global (W8 Mall) Routes */}
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
