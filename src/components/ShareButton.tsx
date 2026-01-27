@@ -35,57 +35,140 @@ const ShareButton: React.FC<ShareButtonProps> = ({
   const [copied, setCopied] = useState(false);
   const [shortUrl, setShortUrl] = useState<string | null>(null);
 
-  const handleShare = async (method: 'short' | 'full' | 'native') => {
+  /**
+   * Generate or retrieve cached short link
+   */
+  const getShortLink = async (): Promise<string | null> => {
+    // Return cached short link if already generated
+    if (shortUrl) {
+      return shortUrl;
+    }
+
+    try {
+      const result = await ShortLinkService.createShortLink({
+        original_url: url,
+        resource_type: resourceType,
+        resource_id: resourceId
+      });
+
+      if (result) {
+        setShortUrl(result.short_url);
+        return result.short_url;
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error generating short link:', error);
+      return null;
+    }
+  };
+
+  /**
+   * Handle "Copy Short Link" action
+   */
+  const handleCopyShortLink = async () => {
     setLoading(true);
 
     try {
-      let urlToShare = window.location.origin + url;
+      const link = await getShortLink();
 
-      // If short link requested, generate it
-      if (method === 'short') {
-        if (shortUrl) {
-          urlToShare = shortUrl;
-        } else {
-          const result = await ShortLinkService.createShortLink({
-            original_url: url,
-            resource_type: resourceType,
-            resource_id: resourceId
-          });
-
-          if (result) {
-            urlToShare = result.short_url;
-            setShortUrl(result.short_url);
-          } else {
-            toast.error(language === 'ar' ? 'فشل إنشاء الرابط المختصر' : 'Failed to create short link');
-            setLoading(false);
-            return;
-          }
-        }
+      if (!link) {
+        toast.error(language === 'ar' ? 'فشل إنشاء الرابط المختصر' : 'Failed to create short link');
+        setLoading(false);
+        return;
       }
 
-      // Native share API
-      if (method === 'native' && navigator.share) {
-        await navigator.share({
-          title: title,
-          text: language === 'ar' ? `تحقق من: ${title}` : `Check out: ${title}`,
-          url: urlToShare
-        });
-        toast.success(language === 'ar' ? 'تم المشاركة' : 'Shared successfully');
+      const success = await ShortLinkService.copyToClipboard(link);
+
+      if (success) {
+        setCopied(true);
+        toast.success(language === 'ar' ? 'تم نسخ الرابط المختصر' : 'Short link copied to clipboard');
+        setTimeout(() => setCopied(false), 2000);
       } else {
-        // Copy to clipboard
-        const success = await ShortLinkService.copyToClipboard(urlToShare);
-        
-        if (success) {
-          setCopied(true);
-          toast.success(language === 'ar' ? 'تم نسخ الرابط' : 'Link copied to clipboard');
-          setTimeout(() => setCopied(false), 2000);
-        } else {
-          toast.error(language === 'ar' ? 'فشل نسخ الرابط' : 'Failed to copy link');
-        }
+        toast.error(language === 'ar' ? 'فشل نسخ الرابط' : 'Failed to copy link');
       }
     } catch (error) {
-      console.error('Share error:', error);
+      console.error('Copy short link error:', error);
       toast.error(language === 'ar' ? 'حدث خطأ' : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Handle "Copy Full Link" action
+   */
+  const handleCopyFullLink = async () => {
+    setLoading(true);
+
+    try {
+      const fullUrl = `${window.location.origin}${url}`;
+      const success = await ShortLinkService.copyToClipboard(fullUrl);
+
+      if (success) {
+        setCopied(true);
+        toast.success(language === 'ar' ? 'تم نسخ الرابط الكامل' : 'Full link copied to clipboard');
+        setTimeout(() => setCopied(false), 2000);
+      } else {
+        toast.error(language === 'ar' ? 'فشل نسخ الرابط' : 'Failed to copy link');
+      }
+    } catch (error) {
+      console.error('Copy full link error:', error);
+      toast.error(language === 'ar' ? 'حدث خطأ' : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Handle "Share via..." (Native Share) action
+   * CRITICAL: This MUST share the SHORT LINK, not the full URL
+   */
+  const handleNativeShare = async () => {
+    setLoading(true);
+
+    try {
+      // Step 1: Generate/Get the short link
+      const link = await getShortLink();
+
+      if (!link) {
+        toast.error(language === 'ar' ? 'فشل إنشاء الرابط للمشاركة' : 'Failed to create shareable link');
+        setLoading(false);
+        return;
+      }
+
+      // Step 2: Share the SHORT LINK using native share API
+      if (navigator.share) {
+        await navigator.share({
+          title: title,
+          text: language === 'ar' 
+            ? `تحقق من: ${title}` 
+            : `Check out: ${title}`,
+          url: link // ✅ SHARES THE SHORT LINK (e.g., sarraly.app/s/xyz)
+        });
+
+        toast.success(language === 'ar' ? 'تم المشاركة بنجاح' : 'Shared successfully');
+      } else {
+        // Fallback: If native share not available, copy short link
+        const success = await ShortLinkService.copyToClipboard(link);
+        
+        if (success) {
+          toast.success(
+            language === 'ar' 
+              ? 'الرابط المختصر تم نسخه (المشاركة غير متاحة)' 
+              : 'Short link copied (sharing not available)'
+          );
+        }
+      }
+    } catch (error: any) {
+      // User cancelled the share dialog (not an error)
+      if (error.name === 'AbortError') {
+        console.log('User cancelled share');
+        return;
+      }
+
+      console.error('Native share error:', error);
+      toast.error(language === 'ar' ? 'فشلت المشاركة' : 'Share failed');
     } finally {
       setLoading(false);
     }
@@ -109,17 +192,23 @@ const ShareButton: React.FC<ShareButtonProps> = ({
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => handleShare('short')}>
+
+      <DropdownMenuContent align="end" className="w-56">
+        {/* Copy Short Link */}
+        <DropdownMenuItem onClick={handleCopyShortLink} disabled={loading}>
           <Link2 className="w-4 h-4 me-2" />
           {language === 'ar' ? 'نسخ رابط مختصر' : 'Copy Short Link'}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleShare('full')}>
+
+        {/* Copy Full Link */}
+        <DropdownMenuItem onClick={handleCopyFullLink} disabled={loading}>
           <Copy className="w-4 h-4 me-2" />
           {language === 'ar' ? 'نسخ الرابط الكامل' : 'Copy Full Link'}
         </DropdownMenuItem>
+
+        {/* Native Share (with SHORT LINK) */}
         {navigator.share && (
-          <DropdownMenuItem onClick={() => handleShare('native')}>
+          <DropdownMenuItem onClick={handleNativeShare} disabled={loading}>
             <Share2 className="w-4 h-4 me-2" />
             {language === 'ar' ? 'مشاركة عبر...' : 'Share via...'}
           </DropdownMenuItem>
