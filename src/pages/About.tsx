@@ -154,14 +154,18 @@ const About = () => {
               </span>
             </div>
             
+            <div className="text-5xl md:text-8xl font-bold text-primary mb-4 md:mb-6">
+              {language === 'ar' ? 'مع سرعلي ' : 'Sarraly'}
+            </div>
+            
             <h1 className="text-5xl md:text-7xl font-extrabold mb-4 text-primary drop-shadow-sm">
-              {language === 'ar' ? 'نغير مفهوم التجارة الإلكترونية' : 'Transforming E-Commerce'}
+              {language === 'ar' ? 'هنغير مفهوم التجارة الإلكترونية' : 'Transforming E-Commerce'}
             </h1>
             
             <p className="text-lg md:text-xl text-muted-foreground mb-6 leading-relaxed">
               {language === 'ar' 
-                ? 'سرعلي هي منصة مصرية رائدة تهدف لتمكين كل تاجر من امتلاك متجره الإلكتروني الاحترافي في ثوانٍ معدودة. بدون تعقيدات تقنية، بدون رسوم مبالغ فيها - فقط ابدأ وانطلق!'
-                : 'Sarraly is a leading Egyptian platform designed to empower every merchant to own a professional online store in seconds. No technical complications, no excessive fees - just start and launch!'
+                ? <><span className="font-bold text-primary">سرعلي</span> هي منصة مصرية رائدة تهدف لتمكين كل تاجر من امتلاك متجره الإلكتروني الاحترافي في ثوانٍ معدودة. بدون تعقيدات تقنية، بدون رسوم مبالغ فيها - فقط ابدأ وانطلق!</>
+                : <><span className="font-bold text-primary">Sarraly</span> is a leading Egyptian platform designed to empower every merchant to own a professional online store in seconds. No technical complications, no excessive fees - just start and launch!</>
               }
             </p>
 
