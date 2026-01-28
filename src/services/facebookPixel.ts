@@ -4,10 +4,10 @@
  * Centralized utility for tracking Facebook Pixel events.
  * Uses dynamic import to avoid SSR issues.
  * 
- * Pixel ID: 858540438007678
+ * Pixel ID: 1604831090969670
  */
 
-const FB_PIXEL_ID = '858540438007678';
+const FB_PIXEL_ID = '1604831090969670';
 
 // Flag to track initialization
 let isInitialized = false;
