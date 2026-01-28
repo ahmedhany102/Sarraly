@@ -283,6 +283,7 @@ export const translations = {
             copyright: "جميع الحقوق محفوظة",
             // Link names
             home: "الصفحة الرئيسية",
+            aboutUs: "من نحن",
             bestSeller: "الأفضل مبيعاً",
             stores: "المتاجر",
             getYourStore: "امتلك متجرك",
@@ -669,6 +670,7 @@ export const translations = {
             copyright: "All Rights Reserved",
             // Link names
             home: "Home",
+            aboutUs: "About Us",
             bestSeller: "Best Sellers",
             stores: "Stores",
             getYourStore: "Get Your Store",

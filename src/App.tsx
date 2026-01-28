@@ -25,6 +25,7 @@ import SimilarProductsPage from './pages/SimilarProductsPage';
 import ShippingPolicy from './pages/Policies/ShippingPolicy';
 import ReturnPolicy from './pages/Policies/ReturnPolicy';
 import FAQ from './pages/FAQ';
+import About from './pages/About';
 
 // Admin Layout and Pages
 import AdminLayout from './components/layouts/AdminLayout';
@@ -113,6 +114,7 @@ function AppContent() {
           <Route path="/policy/shipping" element={<ShippingPolicy />} />
           <Route path="/policy/returns" element={<ReturnPolicy />} />
           <Route path="/faq" element={<FAQ />} />
+          <Route path="/about" element={<About />} />
 
           {/* Vendor Storefront Routes - Wrapped in VendorContextProvider */}
           <Route
