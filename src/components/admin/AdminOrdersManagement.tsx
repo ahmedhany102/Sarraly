@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Eye, Package, Truck, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Eye, Package, Truck, CheckCircle, Clock, XCircle, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -62,6 +63,7 @@ const OrderDetailsDialog: React.FC<{
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }> = ({ orderId, orderNumber, open, onOpenChange }) => {
+  const navigate = useNavigate();
   const { items, orderInfo, loading } = useAdminOrderDetails(orderId);
   const [vendors, setVendors] = useState<Record<string, VendorInfo>>({});
 
@@ -104,10 +106,24 @@ const OrderDetailsDialog: React.FC<{
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="text-start">
-          <DialogTitle>تفاصيل الطلب #{orderNumber}</DialogTitle>
-          <DialogDescription>
-            عرض كامل للطلب مع تفاصيل كل بائع
-          </DialogDescription>
+          <div className="flex justify-between items-start">
+            <div>
+              <DialogTitle>تفاصيل الطلب #{orderNumber}</DialogTitle>
+              <DialogDescription>
+                عرض كامل للطلب مع تفاصيل كل بائع
+              </DialogDescription>
+            </div>
+            <Button
+              onClick={() => {
+                onOpenChange(false);
+                navigate(`/admin/vendor-orders/${orderId}`);
+              }}
+              className="gap-2"
+            >
+              <Edit className="h-4 w-4" />
+              تعديل الطلب
+            </Button>
+          </div>
         </DialogHeader>
 
         {loading ? (
@@ -136,7 +152,11 @@ const OrderDetailsDialog: React.FC<{
                 </div>
                 <div>
                   <span className="text-muted-foreground">العنوان:</span>
-                  <p className="font-medium">{customerInfo.address || 'غير معروف'}</p>
+                  <p className="font-medium">
+                    {typeof customerInfo.address === 'object' && customerInfo.address
+                      ? `${customerInfo.address.street || ''} ${customerInfo.address.city || ''} ${customerInfo.address.governorate || customerInfo.address.zipCode || ''}`.trim() || 'غير معروف'
+                      : customerInfo.address || 'غير معروف'}
+                  </p>
                 </div>
               </CardContent>
             </Card>

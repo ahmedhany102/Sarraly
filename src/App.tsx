@@ -43,6 +43,7 @@ import AdminAds from './pages/admin/AdminAds';
 import AdminReviews from './pages/admin/AdminReviews';
 import AdminAnalytics from './pages/admin/AdminAnalytics';
 import AdminVendors from './pages/admin/AdminVendors';
+import AdminOrderDetails from './pages/admin/AdminOrderDetails';
 
 // Short Link Redirect
 import ShortLinkRedirect from './pages/ShortLinkRedirect';
@@ -194,6 +195,7 @@ function AppContent() {
               <Route path="vendor-products" element={<AdminVendorProducts />} />
               <Route path="orders" element={<AdminOrders />} />
               <Route path="vendor-orders" element={<AdminVendorOrders />} />
+              <Route path="vendor-orders/:orderId" element={<AdminOrderDetails />} />
               <Route path="users" element={<AdminUsers />} />
               <Route path="coupons" element={<AdminCoupons />} />
               <Route path="contact" element={<AdminContact />} />
