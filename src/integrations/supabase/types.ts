@@ -968,6 +968,7 @@ export type Database = {
           created_at: string
           id: string
           logo_url: string | null
+          max_products: number
           phone: string | null
           slug: string | null
           status: string
@@ -983,6 +984,7 @@ export type Database = {
           created_at?: string
           id?: string
           logo_url?: string | null
+          max_products?: number
           phone?: string | null
           slug?: string | null
           status?: string
@@ -998,6 +1000,7 @@ export type Database = {
           created_at?: string
           id?: string
           logo_url?: string | null
+          max_products?: number
           phone?: string | null
           slug?: string | null
           status?: string
@@ -1017,6 +1020,7 @@ export type Database = {
           description: string | null
           id: string
           logo_url: string | null
+          max_products: number
           name: string
           owner_id: string
           phone: string | null
@@ -1032,6 +1036,7 @@ export type Database = {
           description?: string | null
           id?: string
           logo_url?: string | null
+          max_products?: number
           name: string
           owner_id: string
           phone?: string | null
@@ -1047,6 +1052,7 @@ export type Database = {
           description?: string | null
           id?: string
           logo_url?: string | null
+          max_products?: number
           name?: string
           owner_id?: string
           phone?: string | null

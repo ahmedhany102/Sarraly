@@ -7,16 +7,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Loader2, MoreVertical, Store, CheckCircle, XCircle, Ban, Eye } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
+import { Loader2, MoreVertical, Store, CheckCircle, XCircle, Ban, Eye, Package, Edit2, Save, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 
 const AdminVendors = () => {
-  const { vendors, loading, error, fetchVendors, updateVendorStatus } = useAdminVendorProfiles();
+  const { vendors, loading, error, fetchVendors, updateVendorStatus, updateVendorProductLimit } = useAdminVendorProfiles();
   const [activeTab, setActiveTab] = useState<string>('all');
   const [selectedVendor, setSelectedVendor] = useState<typeof vendors[0] | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  
+  // Product limit editing state
+  const [editingLimitId, setEditingLimitId] = useState<string | null>(null);
+  const [editingLimitValue, setEditingLimitValue] = useState<number>(50);
+  const [limitUpdateLoading, setLimitUpdateLoading] = useState(false);
 
   useEffect(() => {
     fetchVendors(activeTab === 'all' ? undefined : activeTab);
@@ -30,6 +37,43 @@ const AdminVendors = () => {
       setDetailsOpen(false);
     }
     setActionLoading(false);
+  };
+
+  // Start editing product limit
+  const startEditingLimit = (vendorId: string, currentLimit: number) => {
+    setEditingLimitId(vendorId);
+    setEditingLimitValue(currentLimit);
+  };
+
+  // Cancel editing product limit
+  const cancelEditingLimit = () => {
+    setEditingLimitId(null);
+    setEditingLimitValue(50);
+  };
+
+  // Save product limit
+  const saveProductLimit = async (vendorId: string) => {
+    setLimitUpdateLoading(true);
+    const success = await updateVendorProductLimit(vendorId, editingLimitValue);
+    if (success) {
+      await fetchVendors(activeTab === 'all' ? undefined : activeTab);
+      setEditingLimitId(null);
+    }
+    setLimitUpdateLoading(false);
+  };
+
+  // Get usage percentage for progress bar
+  const getUsagePercentage = (count: number, limit: number) => {
+    if (limit === 0) return 100;
+    return Math.min((count / limit) * 100, 100);
+  };
+
+  // Get usage color based on percentage
+  const getUsageColor = (count: number, limit: number) => {
+    const percentage = getUsagePercentage(count, limit);
+    if (percentage >= 90) return 'text-red-600';
+    if (percentage >= 70) return 'text-yellow-600';
+    return 'text-green-600';
   };
 
   const openDetails = (vendor: typeof vendors[0]) => {
@@ -93,13 +137,14 @@ const AdminVendors = () => {
                   لا يوجد بائعين في هذه الفئة
                 </div>
               ) : (
-                <div className="rounded-md border">
+                <div className="rounded-md border overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>المتجر</TableHead>
                         <TableHead>المالك</TableHead>
                         <TableHead>الهاتف</TableHead>
+                        <TableHead>المنتجات / الحد</TableHead>
                         <TableHead>الحالة</TableHead>
                         <TableHead>تاريخ التقديم</TableHead>
                         <TableHead className="w-[50px]"></TableHead>
@@ -116,6 +161,70 @@ const AdminVendors = () => {
                             </div>
                           </TableCell>
                           <TableCell>{vendor.phone || '-'}</TableCell>
+                          
+                          {/* Product Usage / Limit Column */}
+                          <TableCell>
+                            {vendor.status === 'approved' ? (
+                              <div className="min-w-[140px]">
+                                {editingLimitId === vendor.id ? (
+                                  <div className="flex items-center gap-2">
+                                    <Input
+                                      type="number"
+                                      min={1}
+                                      max={10000}
+                                      value={editingLimitValue}
+                                      onChange={(e) => setEditingLimitValue(parseInt(e.target.value) || 50)}
+                                      className="w-20 h-8 text-sm"
+                                    />
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-8 w-8"
+                                      onClick={() => saveProductLimit(vendor.id)}
+                                      disabled={limitUpdateLoading}
+                                    >
+                                      {limitUpdateLoading ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <Save className="h-4 w-4 text-green-600" />
+                                      )}
+                                    </Button>
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-8 w-8"
+                                      onClick={cancelEditingLimit}
+                                    >
+                                      <X className="h-4 w-4 text-red-600" />
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <div className="space-y-1">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <span className={`text-sm font-medium ${getUsageColor(vendor.product_count || 0, vendor.max_products || 50)}`}>
+                                        {vendor.product_count || 0} / {vendor.max_products || 50}
+                                      </span>
+                                      <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        className="h-6 w-6"
+                                        onClick={() => startEditingLimit(vendor.id, vendor.max_products || 50)}
+                                      >
+                                        <Edit2 className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                    <Progress 
+                                      value={getUsagePercentage(vendor.product_count || 0, vendor.max_products || 50)} 
+                                      className="h-1.5"
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          
                           <TableCell>
                             <Badge className={getStatusColor(vendor.status)}>
                               {getStatusLabel(vendor.status)}
@@ -203,6 +312,31 @@ const AdminVendors = () => {
                   <p className="font-medium">{selectedVendor.address || '-'}</p>
                 </div>
               </div>
+
+              {/* Product Limit Section - Only for approved vendors */}
+              {selectedVendor.status === 'approved' && (
+                <div className="border rounded-lg p-4 bg-muted/30">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Package className="w-4 h-4 text-primary" />
+                    <p className="text-sm font-semibold">حد المنتجات</p>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">الاستخدام الحالي</span>
+                      <span className={`text-sm font-bold ${getUsageColor(selectedVendor.product_count || 0, selectedVendor.max_products || 50)}`}>
+                        {selectedVendor.product_count || 0} / {selectedVendor.max_products || 50}
+                      </span>
+                    </div>
+                    <Progress 
+                      value={getUsagePercentage(selectedVendor.product_count || 0, selectedVendor.max_products || 50)} 
+                      className="h-2"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {getUsagePercentage(selectedVendor.product_count || 0, selectedVendor.max_products || 50).toFixed(0)}% مستخدم
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {selectedVendor.store_description && (
                 <div>

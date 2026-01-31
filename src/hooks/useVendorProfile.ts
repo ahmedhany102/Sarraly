@@ -21,11 +21,15 @@ export interface VendorProfile {
   sales_channel_link?: string | null;
   has_physical_store?: boolean;
   registration_notes?: string | null;
+  // Product limit fields
+  max_products?: number;
 }
 
 export interface VendorProfileWithUser extends VendorProfile {
   user_email: string;
   user_name: string;
+  // Product limit tracking
+  product_count?: number;
 }
 
 export const useVendorProfile = () => {
@@ -289,12 +293,42 @@ export const useAdminVendorProfiles = () => {
     }
   };
 
+  const updateVendorProductLimit = async (vendorProfileId: string, newLimit: number) => {
+    try {
+      // Validate limit on frontend
+      if (newLimit < 1 || newLimit > 10000) {
+        toast.error('الحد يجب أن يكون بين 1 و 10000');
+        return false;
+      }
+
+      const { data, error } = await supabase
+        .rpc('update_vendor_product_limit', {
+          target_vendor_profile_id: vendorProfileId,
+          new_limit: newLimit
+        });
+
+      if (error) {
+        console.error('Error updating vendor product limit:', error);
+        toast.error('فشل في تحديث حد المنتجات: ' + error.message);
+        return false;
+      }
+
+      toast.success(`تم تحديث حد المنتجات إلى: ${newLimit}`);
+      return true;
+    } catch (err) {
+      console.error('Error in updateVendorProductLimit:', err);
+      toast.error('حدث خطأ أثناء تحديث حد المنتجات');
+      return false;
+    }
+  };
+
   return {
     vendors,
     loading,
     error,
     fetchVendors,
-    updateVendorStatus
+    updateVendorStatus,
+    updateVendorProductLimit
   };
 };
 
